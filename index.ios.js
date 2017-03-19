@@ -5,7 +5,7 @@
  */
 
 // Dependencies
-import React, { Component } from 'react';
+import React, { Component } from 'react'
 import {
   AppRegistry,
   AsyncStorage,
@@ -16,20 +16,24 @@ import {
   NativeEventEmitter,
   NavigatorIOS,
   Text,
+  TextInput,
+  Keyboard,
   TouchableHighlight,
   View,
   ListView,
-  Dimensions
-} from 'react-native';
+  Dimensions,
+  LayoutAnimation
+} from 'react-native'
 import moment from 'moment'
 import RNFetchBlob from 'react-native-fetch-blob'
 import Marquee from '@remobile/react-native-marquee'
 import MarqueeLabel from '@remobile/react-native-marquee-label'
 import FAIcon from 'react-native-vector-icons/FontAwesome'
 import SLIcon from 'react-native-vector-icons/SimpleLineIcons'
+import IOIcon from 'react-native-vector-icons/Ionicons'
 import Orientation from 'react-native-orientation'
 import BlurImage from 'react-native-blur-image'
-import BackgroundTimer from 'react-native-background-timer';
+import BackgroundTimer from 'react-native-background-timer'
 
 // NAtive Modules
 const SpotifyAuth = NativeModules.SpotifyAuth
@@ -48,11 +52,10 @@ const defaultImages = [
   require('./assets/gmixr-logo2.gif'), 
   require('./assets/gmixr-logo3.gif'),
   require('./assets/gmixr-logo4.gif'),
-  require('./assets/gmixr-logo5.gif')
 ]
 defaultImages.sort(() => {
-  return .5 - Math.random();
-});
+  return .5 - Math.random()
+})
 var defaultImage = defaultImages[0]
 
 
@@ -60,8 +63,11 @@ var defaultImage = defaultImages[0]
 class logIn extends Component {
   constructor(props) {
     super(props)
+
+    this._loginToSpotify = this._loginToSpotify.bind(this)
+
     this.state = {
-      status: ''
+      loggedIn: true
     }
   }
 
@@ -73,39 +79,36 @@ class logIn extends Component {
         SpotifyAuth.getToken((token)=>{
           this._setAsyncToken(token)
         })
-        this.props.navigator.replace({component: PlayerView, title: 'Success'});
+        this.props.navigator.replace({component: PlayerView})
       } else {
         this._setAsyncToken(error)
-        this.props.navigator.replace({component: PlayerView, title: 'Success'});
-        //console.log('error:',error);
+        this.props.navigator.replace({component: PlayerView})
       }
-    });
-  }
-
-  _setAsyncToken(token){
-    AsyncStorage.setItem('@GmixrStore:token', token, () => {
     })
   }
 
+  _setAsyncToken(token){
+    AsyncStorage.setItem('@GmixrStore:token', token)
+  }
+
   render() {
+
     return (
       <View style={styles.container}>
-        <Text style={styles.mediumText}>
-          {this.state.status}
-        </Text>
-        <TouchableHighlight style={styles.button} onPress={
-            ()=>{ 
-              //Start Auth process
-              this._loginToSpotify()
-            }
-          }>
-          <Image resizeMode ={'contain'}
-           style={styles.image}
-           source={require('./assets/login-button-mobile.png')}
-          />
-        </TouchableHighlight>
+        {(this.state.loggedIn) ? (
+          <Image 
+              source={defaultImage}
+              style={{width: width}}
+              resizeMode='contain'
+            />
+          ) : (
+          <FAIcon.Button name="spotify" backgroundColor="#1ED760" size={32} onPress={this._loginToSpotify}>
+            <Text style={{fontSize:18, color:'white'}}>Login with Spotify</Text>
+          </FAIcon.Button>
+          
+          )}
       </View>
-    );
+    )
   }
   componentDidMount() {
 
@@ -114,16 +117,43 @@ class logIn extends Component {
     // AsyncStorage.removeItem('@GmixrStore:timestamp')
 
     // Get Token or Renew
+
     SpotifyAuth.loggedIn((result)=>{
       if(result){
         SpotifyAuth.getToken((token)=>{
           this._setAsyncToken(token)
-          this.props.navigator.replace({component: PlayerView, title: 'Success'});
+          this.props.navigator.replace({component: PlayerView})
         })
       }else{
         SpotifyAuth.renewToken((token)=>{
-          this._setAsyncToken(token)
-          this.props.navigator.replace({component: PlayerView, title: 'Success'});
+          if(!token){
+            this.setState({loggedIn:false}, 
+            function(){
+              this.forceUpdate()
+            })
+          }else{
+            console.log('token true')
+            this.setState({loggedIn:true}, 
+            function(){
+              this.forceUpdate()
+            })
+            this._setAsyncToken(token)
+            this.props.navigator.replace({component: PlayerView})
+          }
+
+        })
+        AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
+          if(!res){
+            this.setState({loggedIn:false}, 
+            function(){
+                this.forceUpdate()
+            })
+          }else{
+            this.setState({loggedIn:true}, 
+            function(){
+              this.forceUpdate()
+            })
+          }
         })
       }
     })
@@ -136,7 +166,7 @@ class PlayerView extends Component {
   constructor(props) {
     super(props)
 
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
     // Actions
     this._playPause = this._playPause.bind(this)
@@ -147,6 +177,8 @@ class PlayerView extends Component {
     this._setShuffle = this._setShuffle.bind(this)
     this._setRepeat = this._setRepeat.bind(this)
     this._choosePlaylist = this._choosePlaylist.bind(this)
+    this._newGifRequest = this._newGifRequest.bind(this)
+    this._setSaved = this._setSaved.bind(this)
     this._tick = this._tick.bind(this)
 
     // State
@@ -156,7 +188,6 @@ class PlayerView extends Component {
         width: width,
         height: height
       },
-      defualtArtist: 'tycho',
       currentUser: [],
       userPlaylists: [],
       tracks: [],
@@ -176,26 +207,49 @@ class PlayerView extends Component {
       currentTrackName: '',
       currentArtistName: '',
       currentAlbumName: '',
+      currentTrackURI: '',
       currentTrackArt: '',
+      currentTrackID: '',
+      currentGiphyTerms: [],
+      textTerms: '',
+      inputActive: false,
       currentPlaylistGif: '',
       loadingGifs: false,
       currentPlaylistGifsURLS: [],
       currentPlaylistGifsLocal: [],
       currenttrackAnalisys: [],
       currenttrackFeatures: [],
+      currenttrackSaved: false,
       amountLoaded: 0,
-      showListView: false,
+      showListView: true,
       dataSource: ds.cloneWithRows([]),
+      tasks: []
 
     }
   }
 
   // Helpers
   _minTommss(minutes){
-    var sign = minutes < 0 ? "-" : "";
-    var min = Math.floor(Math.abs(minutes));
-    var sec = Math.floor((Math.abs(minutes) * 60) % 60);
-    return sign + (min < 10 ? "0" : "") + min + ":" + (sec < 10 ? "0" : "") + sec;
+    var sign = minutes < 0 ? "-" : ""
+    var min = Math.floor(Math.abs(minutes))
+    var sec = Math.floor((Math.abs(minutes) * 60) % 60)
+    return sign + (min < 10 ? "0" : "") + min + ":" + (sec < 10 ? "0" : "") + sec
+  }
+
+  _setInput(active){
+    if(this.state.currentTrackName != ''){
+      if(active){
+        //this._stop()
+        this.refs.Search.focus()
+      }else{ 
+        //this._play()
+        this.refs.Search.blur()
+      }
+    }
+    this.setState({
+      inputActive: active
+    })
+
   }
 
   // Hard Stop
@@ -207,8 +261,8 @@ class PlayerView extends Component {
     })
 
     SpotifyAuth.setIsPlaying(false, (error)=>{
-        clearInterval(this.playTime);
-        BackgroundTimer.clearInterval(this.intervalId);
+        clearInterval(this.playTime)
+        BackgroundTimer.clearInterval(this.intervalId)
     })
   }
 
@@ -216,19 +270,19 @@ class PlayerView extends Component {
   _play(){
 
 
-    clearInterval(this.playTime);
-    BackgroundTimer.clearInterval(this.intervalId); 
+    clearInterval(this.playTime)
+    BackgroundTimer.clearInterval(this.intervalId)
 
     this.setState({
       isPlaying: true,
       loadingGifs: false
     })
     SpotifyAuth.setIsPlaying(true, (error)=>{
-      this.playTime = setInterval(this._tick, 1000);
+      this.playTime = setInterval(this._tick, 1000)
 
       this.intervalId = BackgroundTimer.setInterval(() => {
             this._updateGif(this.state.currentPlaylistGifsLocal)
-        }, this.state.bpm);
+        }, this.state.bpm)
     })
   }
 
@@ -238,19 +292,18 @@ class PlayerView extends Component {
     SpotifyAuth.setIsPlaying(!this.state.isPlaying, (error)=>{
       
       if(error){
-        console.log('error:',error);
+        console.log('error:',error)
       }
 
       if(this.state.isPlaying){
-        clearInterval(this.playTime);
-        BackgroundTimer.clearInterval(this.intervalId);
-        //clearInterval(this.gifSwap);
+        clearInterval(this.playTime)
+        BackgroundTimer.clearInterval(this.intervalId)
       }else{
-        this.playTime = setInterval(this._tick, 1000);
+        this.playTime = setInterval(this._tick, 1000)
 
         this.intervalId = BackgroundTimer.setInterval(() => {
               this._updateGif(this.state.currentPlaylistGifsLocal)
-          }, this.state.bpm);
+          }, this.state.bpm)
       }
       
       this.setState({
@@ -262,53 +315,55 @@ class PlayerView extends Component {
 
   _playPrevious(){
 
-    if(!this.state.loadingGifs){
+    this._cancelGetData(this.state.currentPlaylistGifsURLS)
 
-      SpotifyAuth.skipPrevious((error)=>{
-        if(error){
-          console.log('error:',error);
-        }
 
-        this.setState({
-          secondsElapsed: 0
-        })
 
-        //this._stop()
-        clearInterval(this.playTime);
-        BackgroundTimer.clearInterval(this.intervalId);
+    SpotifyAuth.skipPrevious((error)=>{
+      if(error){
+        console.log('error:',error)
+      }
 
-      });
-    }
+      this.setState({
+        secondsElapsed: 0
+      })
+
+      //this._stop()
+      clearInterval(this.playTime)
+      BackgroundTimer.clearInterval(this.intervalId)
+
+    })
 
   }
 
   _playNext(){
 
-    if(!this.state.loadingGifs){
+
+    this._cancelGetData(this.state.currentPlaylistGifsURLS)
       
-      SpotifyAuth.skipNext((error)=>{
-        if(error){
-          console.log('error:',error);
-        }
+    SpotifyAuth.skipNext((error)=>{
+      if(error){
+        console.log('error:',error)
+      }
 
-        
-        this.setState({
-          secondsElapsed: 0
-        })
+      
+      this.setState({
+        secondsElapsed: 0
+      })
 
-        //this._stop()
-        clearInterval(this.playTime);
-        BackgroundTimer.clearInterval(this.intervalId);
+      //this._stop()
+      clearInterval(this.playTime)
+      BackgroundTimer.clearInterval(this.intervalId)
 
-      });
-    }
+    })
+  
   }
 
   _setShuffle(){
     var value = (this.state.isShuffling) ? false : true
     SpotifyAuth.setShuffle(value, (error)=>{
       if(error){
-        console.log('error:',error);
+        console.log('error:',error)
       }
       console.log('setShuffle')
       console.log(value)
@@ -316,14 +371,14 @@ class PlayerView extends Component {
         isShuffling: value,
       })
 
-    });
+    })
   }
 
   _setRepeat(){
     var mode = (this.state.isRepeating) ? false : true
     SpotifyAuth.setRepeat(mode, (error)=>{
       if(error){
-        console.log('error:',error);
+        console.log('error:',error)
       }
       console.log('setRepeat')
       console.log(mode)
@@ -331,12 +386,6 @@ class PlayerView extends Component {
         isRepeating: mode,
       })
 
-    });
-  }
-
-  _launchSelector(){
-    this.setState({
-      showListView: (this.state.showListView) ? false : true
     })
   }
 
@@ -352,13 +401,13 @@ class PlayerView extends Component {
       this.setState({
         secondsElapsed: hours + ':' + minutes + ':' + seconds
       })
-    });
+    })
   }
 
   // Swap Visable Image on tempo update
   _updateGif(currentPlaylistGifsLocal){
     if(currentPlaylistGifsLocal.length){
-      var image = currentPlaylistGifsLocal[Math.floor(Math.random() * currentPlaylistGifsLocal.length)];
+      var image = currentPlaylistGifsLocal[Math.floor(Math.random() * currentPlaylistGifsLocal.length)]
       this.setState({
         currentPlaylistGif: image
       })
@@ -371,22 +420,22 @@ class PlayerView extends Component {
   // Can be done: https://github.com/wkh237/react-native-fetch-blob#user-content-cancel-request
   _getData(imagearr){
 
+
     this.setState({
       currentPlaylistGifsLocal: []
     })
 
     var j = 1
 
+
     for(i = 0; i < imagearr.length; i++){
 
-      RNFetchBlob
-      .config({
-
+      this.state.tasks[i] = RNFetchBlob.config({
         fileCache : true,
         appendExt : 'gif'
-      })
-      .fetch('GET', imagearr[i])
-      .then((result) => {
+      }).fetch('GET', imagearr[i])
+
+      this.state.tasks[i].then((result) => {
 
         var percent = Math.round((j/imagearr.length)*100)
 
@@ -401,8 +450,22 @@ class PlayerView extends Component {
 
         }
         j++
+      }).catch((err) => {
+        console.log(err)
       })
     }
+  }
+
+  _cancelGetData(imagearr){
+
+    this.setState({
+      currentPlaylistGifsLocal: []
+    })
+
+    for(i = 0; i < imagearr.length; i++){
+      this.state.tasks[i].cancel()
+    }
+
   }
 
   // Get track info from current playlist
@@ -436,13 +499,13 @@ class PlayerView extends Component {
       this._getMusic()
     })
     .catch((err) => {
-      console.error(err);
-    });
+      console.error(err)
+    })
   }
 
   // Get all the users Playlists
   _fetchPlaylists(bearer){
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
     fetch('https://api.spotify.com/v1/users/'+this.state.currentUser.id+'/playlists?limit=50', {
       method: 'GET',
@@ -453,12 +516,16 @@ class PlayerView extends Component {
     })
     .then((response) => response.json())
     .then((responseJson) => {
+      console.log(responseJson)
+      if(responseJson.error){
+        return
+      }
       var playlists = responseJson.items
-      //console.log(playlists)
+      
 
       var mydata = []
       for(i = 0; i < playlists.length; i++){
-        console.log(playlists[i])
+        //console.log(playlists[i])
         var imgArr = playlists[i].images
         var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
 
@@ -495,8 +562,8 @@ class PlayerView extends Component {
       
     })
     .catch((err) => {
-      console.error(err);
-    });
+      console.error(err)
+    })
   }
 
   // If we can, respond to fetch function
@@ -512,7 +579,7 @@ class PlayerView extends Component {
       }else{
         AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
           this._fetchPlaylists(res)
-        });
+        })
       }
     })
   }
@@ -535,8 +602,8 @@ class PlayerView extends Component {
       this._getUsersPlaylists()
     })
     .catch((err) => {
-      console.error(err);
-    });
+      console.error(err)
+    })
   }
 
   // If we can, fetch User info
@@ -552,7 +619,7 @@ class PlayerView extends Component {
       }else{
         AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
           this._fetchUser(res)
-        });
+        })
       }
     })
 
@@ -561,7 +628,7 @@ class PlayerView extends Component {
   // Start the timer, set the playlist and update some states
   _getMusic() {
 
-    this.playTime = setInterval(this._tick, 1000);
+    this.playTime = setInterval(this._tick, 1000)
 
     var currentPlaylist = this.state.currentPlaylist
 
@@ -583,7 +650,7 @@ class PlayerView extends Component {
         isPlaying: true
       })
       
-    });
+    })
   }
 
   // Search Spotify for Stuff
@@ -593,12 +660,15 @@ class PlayerView extends Component {
       var tracks = []
       var tracksURIs = []
       if(result){
+
         result.map( (item) => {
           tracks.push(item)
         })
+
         tracks.sort(() => {
-          return .5 - Math.random();
-        });
+          return .5 - Math.random()
+        })
+
         tracks.map( (item) => {
           tracksURIs.push(item.uri)
         })
@@ -625,12 +695,12 @@ class PlayerView extends Component {
               this.setState({
                 currentTrackDuration: result
               })
-            });
+            })
 
             AsyncStorage.getItem('@GmixrStore:token', (err, result) => {
               this._getAudioFeatures(track[0].id, result)
               this._getGifs(track[0].artists[0].name + ' ' + track[0].name)
-            });
+            })
 
             this.setState({
               currentArtistName: track[0].artists[0].name,
@@ -638,11 +708,10 @@ class PlayerView extends Component {
               currentAlbumName: track[0].album.name,
             })
               
-          });
-          
-        });
+          })
+        })
       }
-    }); 
+    })
   }
 
   // Update state of current track, clear Gifs and request new ones.
@@ -653,23 +722,50 @@ class PlayerView extends Component {
     var tracks = this.state.tracks
 
 
-    SpotifyAuth.currentTrackData((result)=>{
-      
-      var json = JSON.parse(result)
-      this.setState({
-        currentArtistName: json.artistName,
-        currentTrackName: json.name,
-        currentAlbumName: json.albumName,
-        currentTrackArt: json.albumCoverArtURL,
+    var trackID = currentURI.replace("spotify:track:", "")
+
+    AsyncStorage.getItem('@GmixrStore:token', (err, result) => {
+
+      fetch('https://api.spotify.com/v1/tracks/'+trackID, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer '+result
+        }
+      })
+      .then((response) => response.json())
+      .then((responseJson) => {
+
+
+        console.log('_setTrack')
+        console.log(responseJson)
+
+        
+
+        this.setState({
+          currentArtistName: responseJson.artists[0].name,
+          currentTrackName: responseJson.name,
+          currentAlbumName: responseJson.album.name,
+          currentTrackArt: responseJson.album.images[0].url,
+          currentTrackURI: responseJson.uri,
+          currentTrackID: responseJson.id
+        })
+
+        var currentTerms = []
+        currentTerms[0] = responseJson.artists[0].name
+        currentTerms[1] = responseJson.name
+
+        this._getAudioFeatures(responseJson.id, result)
+        this._getGifs(responseJson.artists[0].name + ' ' + responseJson.name)
+
+        
+      })
+      .catch((err) => {
+        console.error(err)
       })
 
-      var trackID = json.uri.replace("spotify:track:", "")
+    })
 
-      AsyncStorage.getItem('@GmixrStore:token', (err, result) => {
-        this._getAudioFeatures(trackID, result)
-        this._getGifs(json.artistName + ' ' + json.name)
-      })
-    })  
    
   }
 
@@ -696,7 +792,7 @@ class PlayerView extends Component {
           tempo = currenttrackFeatures.tempo
         }
 
-        var ms_per_beat = +(((1000 * 60 / tempo)*2).toFixed(2));
+        var ms_per_beat = +(((1000 * 60 / tempo)*2).toFixed(2))
 
         this.setState({
           currenttrackFeatures: currenttrackFeatures,
@@ -709,8 +805,8 @@ class PlayerView extends Component {
 
     })
     .catch((error) => {
-      console.error(error);
-    });
+      console.error(error)
+    })
   }
 
   // Get from Spotify Track Analysis: Beats, Measures, Etc
@@ -725,21 +821,80 @@ class PlayerView extends Component {
     })
     .then((response) => response.json())
     .then((responseJson) => {
-      //console.log(responseJson);
 
       this.setState({
         currenttrackAnalisys: responseJson
       })
+
+      this._getSavedTrack(trackID, token)
     })
     .catch((err) => {
-      console.error(err);
-    });
+      console.error(err)
+    })
   }
+
+  _getSavedTrack(trackID, token){
+
+    //https://api.spotify.com/v1/me/tracks/contains?ids=
+    fetch('https://api.spotify.com/v1/me/tracks/contains?ids='+trackID, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer '+token
+      }
+    })
+    .then((response) => response.json())
+    .then((responseJson) => {
+      console.log('currenttrackSaved')
+      console.log(responseJson[0])
+
+      this.setState({
+        currenttrackSaved: responseJson[0]
+      })
+    })
+    .catch((err) => {
+      console.error(err)
+    })
+  }
+
+  _setSaved(saved){
+    AsyncStorage.getItem('@GmixrStore:token', (err, result) => {
+
+      var method = (saved) ? 'PUT' : 'DELETE'
+      fetch('https://api.spotify.com/v1/me/tracks?ids='+this.state.currentTrackID, {
+        method: method,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer '+result
+        }
+      })
+      .then((response) => {
+        console.log('currenttrackSaved')
+        console.log(response)
+
+        if(response){
+          // var isSaved = (saved) ? false : true
+          this.setState({
+            currenttrackSaved: saved
+          })
+        }
+      })
+      .catch((err) => {
+        console.error(err)
+      })
+
+    })
+  }
+
 
   // Get from Giphy some dank Gifs
   _getGifs(terms){
 
-    this.setState({loadingGifs: true})
+    this.setState({
+      currentGiphyTerms: terms
+    })
+
+    this.setState({loadingGifs: true, textTerms: terms})
 
     terms = encodeURIComponent(terms)
     fetch('https://api.giphy.com/v1/gifs/search?q='+terms+'&limit=50&api_key=dc6zaTOxFJmzC', {
@@ -756,8 +911,8 @@ class PlayerView extends Component {
       this._getData(this.state.currentPlaylistGifsURLS)
     })
     .catch((err) => {
-      console.error(err);
-    });
+      console.error(err)
+    })
     
   }
 
@@ -769,46 +924,54 @@ class PlayerView extends Component {
     })
   }
 
+  _newGifRequest(terms){
+    this._cancelGetData(this.state.currentPlaylistGifsURLS)
+    this._clearGifs()
+    this._getGifs(terms)
+  }
+
   // A selected Playlist From the Playlist ListView
   // TODO: need to add more functionality to choosing music from Spotify
   _choosePlaylist(playlistURI){
 
-    if(!this.state.loadingGifs){
+    this._cancelGetData(this.state.currentPlaylistGifsURLS)
 
-      var playlists = this.state.userPlaylists
+    // if(!this.state.loadingGifs){
 
-      var playlist = playlists.filter((item) => {
-        return item.uri == playlistURI
-      })
+    var playlists = this.state.userPlaylists
+
+    var playlist = playlists.filter((item) => {
+      return item.uri == playlistURI
+    })
 
 
 
-      var imgArr = playlist[0].images
-      var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
+    var imgArr = playlist[0].images
+    var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
 
-      if(imgArr.length){
-        playlistImage = imgArr[0].url
-      }else if(this.state.currentUser.images){
-        playlistImage = this.state.currentUser.images[0].url
-      }
-
-      console.log(playlist[0])
-
-      this.setState({
-        showListView: false,
-        currentPlaylistName: playlist[0].name,
-        currentPlaylist: playlist[0],
-        currentPlaylistOwner: playlist[0].owner.id,
-        currentPlaylistTotal: playlist[0].tracks.total,
-        currentPlaylistImage: playlistImage
-      }, function() {
-        clearInterval(this.playTime);
-        BackgroundTimer.clearInterval(this.intervalId);
-
-        this._getMusic()
-      })
-      
+    if(imgArr.length){
+      playlistImage = imgArr[0].url
+    }else if(this.state.currentUser.images){
+      playlistImage = this.state.currentUser.images[0].url
     }
+
+    console.log(playlist[0])
+
+    this.setState({
+      showListView: false,
+      currentPlaylistName: playlist[0].name,
+      currentPlaylist: playlist[0],
+      currentPlaylistOwner: playlist[0].owner.id,
+      currentPlaylistTotal: playlist[0].tracks.total,
+      currentPlaylistImage: playlistImage
+    }, function() {
+      clearInterval(this.playTime)
+      BackgroundTimer.clearInterval(this.intervalId)
+
+      this._getMusic()
+    })
+      
+    //}
   }
 
     // If from IOS orientation was updated
@@ -824,7 +987,7 @@ class PlayerView extends Component {
         width: width
       }
       //console.log(newLayout)
-      this.setState({ layoutProps: newLayout });
+      this.setState({ layoutProps: newLayout })
 
     } else {
       
@@ -838,8 +1001,15 @@ class PlayerView extends Component {
         width: width
       }
       //console.log(newLayout)
-      this.setState({ layoutProps: newLayout });
+      this.setState({ layoutProps: newLayout })
     }
+  }
+
+  _launchSelector(){
+    LayoutAnimation.easeInEaseOut()
+    this.setState({
+      showListView: (this.state.showListView) ? false : true
+    })
   }
 
   render() {
@@ -873,6 +1043,11 @@ class PlayerView extends Component {
       playlistInfo = 'by ' + this.state.currentPlaylistOwner + ' · ' + this.state.currentPlaylistTotal + ' songs'
     }
 
+    var textTerms = ''
+    for(i = 0; i < this.state.currentGiphyTerms.length; i++){
+      textTerms += this.state.currentGiphyTerms[i] + ' '
+    }
+
     const Row = (props) => (
       <TouchableHighlight style={styles.row} onPress={() => this._choosePlaylist(props.data.uri)} activeOpacity={1} underlayColor="transparent">
         <View style={styles.flexRow}>
@@ -887,7 +1062,7 @@ class PlayerView extends Component {
           </View>
         </View>
       </TouchableHighlight>
-    );
+    )
 
 
 
@@ -915,20 +1090,53 @@ class PlayerView extends Component {
               renderRow={(rowData, sectionID, rowID) => <Row key={rowID} data={rowData} />}  />
             ) : (
             <View style={styles.backgroundView}>
-              <View style={styles.marqueeView}>
-                {(this.state.currentTrackName.length > 40) ? (
-                  <MarqueeLabel style={styles.marqueeLabel} scrollDuration={20} fadeLength={30} leadingBuffer={0} trailingBuffer={0} fontSize={20}>
-                    {this.state.currentTrackName}
-                  </MarqueeLabel>
-                ) : (
-                  <Text style={styles.marqueeText}>
-                    {this.state.currentTrackName}
+              <TextInput
+                  ref='Search'
+                  spellCheck={false}
+                  style={[styles.termInput, {height: (this.state.inputActive) ? 40 : 0, padding:(this.state.inputActive) ? 4 : 0  }]}
+                  onFocus={() => this._setInput(true)}
+                  onBlur={() => this._setInput(false)}
+                  blurOnSubmit={true}
+                  keyboardType={'ascii-capable'}
+                  onChangeText={(text) => this.setState({textTerms: text})}
+                  onSubmitEditing={(event) => this._newGifRequest(event.nativeEvent.text)}
+                  value={this.state.textTerms}
+                  removeClippedSubviews={true}
+                />
+              <View style={styles.flexRow}>
+
+                <TouchableHighlight style={styles.smallerButton} onPress={() => this._setSaved((this.state.currenttrackSaved) ? false : true)} activeOpacity={1} underlayColor="transparent">
+                  {(this.state.currenttrackSaved) ? (
+                     <IOIcon name="md-checkmark" backgroundColor="transparent" color={green} size={17} />
+                  ) : (
+                     <IOIcon name="md-checkmark" backgroundColor="transparent" color="white" size={17} />
+                  )}
+                </TouchableHighlight> 
+
+                <View style={styles.flexColumn}>
+                  <View style={styles.marqueeView}>
+                    {(this.state.currentTrackName.length > 30) ? (
+                      <MarqueeLabel style={styles.marqueeLabel} scrollDuration={20} fadeLength={30} leadingBuffer={0} trailingBuffer={0} fontSize={20}>
+                        {this.state.currentTrackName}
+                      </MarqueeLabel>
+                    ) : (
+                      <Text style={styles.marqueeText}>
+                        {this.state.currentTrackName}
+                      </Text>
+                    )}
+                  </View>
+                  <Text style={styles.mediumText} numberOfLines={1}>
+                      {this.state.currentArtistName}
                   </Text>
-                )}
+                </View>
+                <TouchableHighlight style={styles.smallerButton} onPress={() => this._setInput((this.state.inputActive) ? false : true)} activeOpacity={1} underlayColor="transparent">
+                  {(this.state.inputActive) ? (
+                     <IOIcon name="md-add" backgroundColor="transparent" color={green} size={17} />
+                  ) : (
+                     <IOIcon name="md-add" backgroundColor="transparent" color="white" size={17} />
+                  )}
+                </TouchableHighlight> 
               </View>
-              <Text style={styles.mediumText} numberOfLines={1}>
-                  {this.state.currentArtistName}
-              </Text>
               <Text style={styles.monoText}>
                 {(this.state.secondsElapsed == 0) ? '' : this.state.secondsElapsed}
               </Text>
@@ -940,13 +1148,13 @@ class PlayerView extends Component {
                      <SLIcon name="shuffle" backgroundColor="transparent" color="white" size={15} />
                   )}
                 </TouchableHighlight>          
-                <TouchableHighlight style={[styles.smallButton, {opacity: (this.state.loadingGifs ? 0.5 : 1 )}]} onPress={this._playPrevious} activeOpacity={1} underlayColor="transparent">
+                <TouchableHighlight style={styles.smallButton} onPress={this._playPrevious} activeOpacity={1} underlayColor="transparent">
                   <FAIcon name="step-backward" backgroundColor="transparent" color="white" size={30} />
                 </TouchableHighlight>
                 <TouchableHighlight style={styles.largeButton} onPress={this._playPause} activeOpacity={1} underlayColor="transparent">
                   <FAIcon name={(this.state.isPlaying) ? 'pause' : 'play'} style={(this.state.isPlaying) ? {marginLeft:0} : {marginLeft:7}} backgroundColor="transparent" color="white" size={40} />
                 </TouchableHighlight>
-                <TouchableHighlight style={[styles.smallButton, {opacity: (this.state.loadingGifs ? 0.5 : 1 )}]} onPress={this._playNext} activeOpacity={1} underlayColor="transparent">
+                <TouchableHighlight style={styles.smallButton} onPress={this._playNext} activeOpacity={1} underlayColor="transparent">
                   <FAIcon name="step-forward" backgroundColor="transparent" color="white" size={30} />
                 </TouchableHighlight>
                 <TouchableHighlight style={styles.smallerButton} onPress={this._setRepeat} activeOpacity={1} underlayColor="transparent">
@@ -978,8 +1186,17 @@ class PlayerView extends Component {
         </View>
       </View>
       
-      );
+      )
 
+  }
+
+  componentWillUpdate() {
+    LayoutAnimation.easeInEaseOut()
+  }
+
+  componentWillMount() {
+    // Animate creation
+    LayoutAnimation.easeInEaseOut()
   }
 
 
@@ -988,14 +1205,14 @@ class PlayerView extends Component {
 
 
     // Add Listeners from IOS
-    Orientation.addOrientationListener(this._orientationDidChange);
+    Orientation.addOrientationListener(this._orientationDidChange)
 
     myModuleEvt.addListener('EventReminder', (data) => {
 
       var message = data.object[0]
       if(message.includes("didStartPlayingTrack")){
         
-        var trackURI = message.replace("didStartPlayingTrack: ", "");
+        var trackURI = message.replace("didStartPlayingTrack: ", "")
         this._setTrack(trackURI)
         this._play()
 
@@ -1005,7 +1222,7 @@ class PlayerView extends Component {
 
       }else if(message.includes("didChangeMetadata")){
         
-        var trackURI = message.replace("didChangeMetadata: ", "");
+        var trackURI = message.replace("didChangeMetadata: ", "")
 
       }else if(data.object == "didChangePlaybackStatus"){
 
@@ -1017,12 +1234,12 @@ class PlayerView extends Component {
   componentWillUnmount() {
 
     // Cleanup and Timers and Listeners
-    clearInterval(this.playTime);
-    BackgroundTimer.clearInterval(this.intervalId);
-    myModuleEvt.remove();
+    clearInterval(this.playTime)
+    BackgroundTimer.clearInterval(this.intervalId)
+    myModuleEvt.remove()
 
-    Orientation.getOrientation((err,orientation)=> { });
-    Orientation.removeOrientationListener(this._orientationDidChange);
+    Orientation.getOrientation((err,orientation)=> { })
+    Orientation.removeOrientationListener(this._orientationDidChange)
     
   }
 }
@@ -1046,7 +1263,7 @@ class Gmixr extends Component {
         navigationBarHidden={true}
       />
       </View>
-    );
+    )
   }
 }
 
@@ -1082,6 +1299,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  topPlayerView: {
+
+  },
   video: {
     backgroundColor: black,
   },
@@ -1094,9 +1314,20 @@ const styles = StyleSheet.create({
     alignSelf:'flex-start',
     backgroundColor: blue
   },
+  flexColumn: {
+    flex: 1
+  },
   flexRow: {
     flex: 1,
     flexDirection:'row',
+  },
+  termInput: {
+    padding:0,
+    color:'white',
+    height: 0, 
+    overflow: 'hidden',
+    backgroundColor:'rgba(0,0,0,0.3)'
+
   },
   controls: {
     flex: 1,
@@ -1169,7 +1400,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
-    width:width - 32,
+    width:width - 100,
     color:'#FFF',
   },
   marqueeText: {
@@ -1180,7 +1411,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     textAlign: 'center',
     backgroundColor: 'transparent',
-    width:width - 32,
+    width:width - 100,
     fontSize:20,
     fontWeight:'500',
     color:'#FFF',
@@ -1206,8 +1437,8 @@ const styles = StyleSheet.create({
   },
   listView: {
     position:'absolute', 
-    top:8,
     bottom:72,
+    top:8,
     left:0,
     right:0,
     backgroundColor: 'transparent',
@@ -1239,7 +1470,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 
-});
+})
 
-AppRegistry.registerComponent('GmixrReact', () => Gmixr);
+AppRegistry.registerComponent('GmixrReact', () => Gmixr)
 
