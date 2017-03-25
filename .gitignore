@@ -51,6 +51,3 @@ buck-out/
 fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots
-
-# custom
-ios/GmixrReact.xcodeproj/xcshareddata/xcschemes/GmixrReact.xcscheme

@@ -12,7 +12,6 @@
 #import <SpotifyAudioPlayback/SpotifyAudioPlayback.h>
 #import <SpotifyMetadata/SpotifyMetadata.h>
 
-
 #import "SpotifyAuth.h"
 #import "EventManager.h"
 
@@ -158,7 +157,8 @@ RCT_EXPORT_METHOD(checkSession:(RCTResponseSenderBlock)block)
       self.player.delegate = self;
       self.player.playbackDelegate = self;
       self.player.diskCache = [[SPTDiskCache alloc] initWithCapacity:1024 * 1024 * 64];
-      [self.player loginWithAccessToken:auth.session.accessToken];
+      NSLog(@"loginWithAccessToken: %@", token);
+      [self.player loginWithAccessToken:token];
     } else {
       self.player = nil;
       UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error init" message:[error description] preferredStyle:UIAlertControllerStyleAlert];
@@ -476,6 +476,8 @@ RCT_EXPORT_METHOD(targetBitrate:(RCTResponseSenderBlock)block)
 RCT_EXPORT_METHOD(logout)
 {
   SPTAudioStreamingController *sharedIn = [SPTAudioStreamingController sharedInstance];
+  SpotifyAuth *sharedManager = [SpotifyAuth sharedManager];
+  [sharedManager setSession:nil];
   [sharedIn logout];
 }
 
@@ -856,7 +858,11 @@ RCT_EXPORT_METHOD(performSearchWithQuery:(NSString *)searchQuery
     NSError *error = nil;
     NSLog(@"handleNewSession");
     self.player = [SPTAudioStreamingController sharedInstance];
-    if ([self.player startWithClientId:auth.clientID audioController:nil allowCaching:YES error:&error]) {
+    if ([self.player startWithClientId:auth.clientID audioController:nil allowCaching:NO error:&error]) {
+      if(error){
+        NSLog(@"error: %@",error);
+        return;
+      }
       self.player.delegate = self;
       self.player.playbackDelegate = self;
       self.player.diskCache = [[SPTDiskCache alloc] initWithCapacity:1024 * 1024 * 64];
@@ -897,6 +903,7 @@ RCT_EXPORT_METHOD(performSearchWithQuery:(NSString *)searchQuery
       if(error != nil){
         NSLog(@"Error: %@", error);
         //launch the login again
+        
         [sharedManager startAuth:sharedManager.clientID setRedirectURL:sharedManager.myScheme setRequestedScopes:sharedManager.requestedScopes];
       } else {
         [sharedManager setSession:session];

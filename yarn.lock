@@ -880,15 +880,9 @@ browser-resolve@^1.11.2:
   dependencies:
     resolve "1.1.7"
 
-bser@1.0.2:
+bser@1.0.2, bser@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/bser/-/bser-1.0.2.tgz#381116970b2a6deea5646dd15dd7278444b56169"
-  dependencies:
-    node-int64 "^0.4.0"
-
-bser@^1.0.2:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/bser/-/bser-1.0.3.tgz#d63da19ee17330a0e260d2a34422b21a89520317"
   dependencies:
     node-int64 "^0.4.0"
 
@@ -2428,7 +2422,7 @@ lodash@^3.5.0:
   version "3.10.1"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
 
-lodash@^4.14.0, lodash@^4.16.6, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.3.0, lodash@^4.6.1:
+lodash@^4.0.0, lodash@^4.14.0, lodash@^4.16.6, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.3.0, lodash@^4.6.1:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -2502,13 +2496,13 @@ mime-db@~1.23.0:
   version "1.23.0"
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.23.0.tgz#a31b4070adaea27d732ea333740a64d0ec9a6659"
 
-mime-types@2.1.11, mime-types@~2.1.7, mime-types@~2.1.9:
+mime-types@2.1.11, mime-types@~2.1.7:
   version "2.1.11"
   resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.11.tgz#c259c471bda808a85d6cd193b430a5fae4473b3c"
   dependencies:
     mime-db "~1.23.0"
 
-mime-types@^2.1.12, mime-types@~2.1.11, mime-types@~2.1.13, mime-types@~2.1.6:
+mime-types@^2.1.12, mime-types@~2.1.11, mime-types@~2.1.13, mime-types@~2.1.6, mime-types@~2.1.9:
   version "2.1.14"
   resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.14.tgz#f7ef7d97583fcaf3b7d282b6f8b5679dab1e94ee"
   dependencies:
@@ -2919,6 +2913,14 @@ react-native-background-timer@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/react-native-background-timer/-/react-native-background-timer-1.0.0.tgz#3735b12e23f1f10760a154d7ed054c1f86f1cc46"
 
+react-native-blur-image@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/react-native-blur-image/-/react-native-blur-image-1.0.6.tgz#1a294d96f75ad1a667e455a1ba472ead48d14666"
+
+react-native-blur@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-blur/-/react-native-blur-2.0.0.tgz#284b3abfb42c2d90924aa15f494ccb88d6055342"
+
 react-native-fetch-blob@^0.10.2:
   version "0.10.3"
   resolved "https://registry.yarnpkg.com/react-native-fetch-blob/-/react-native-fetch-blob-0.10.3.tgz#9d841f11f72ae1a519e7da337999a713050accba"
@@ -2930,9 +2932,20 @@ react-native-orientation@^1.17.0:
   version "1.17.0"
   resolved "https://registry.yarnpkg.com/react-native-orientation/-/react-native-orientation-1.17.0.tgz#bfbeba17e20f7f96d09042e31fbe5d479f1d5b94"
 
-react-native@^0.42.0:
-  version "0.42.0"
-  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.42.0.tgz#59b501603a63232598fff653a36307a26010402e"
+react-native-spotify@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/react-native-spotify/-/react-native-spotify-1.0.1.tgz#ed57a2d038704d428230f7adcd3219297b733dcd"
+
+react-native-vector-icons@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-vector-icons/-/react-native-vector-icons-4.0.0.tgz#6a2f8f4c6ace613aed7748cd530809283e5b1538"
+  dependencies:
+    lodash "^4.0.0"
+    yargs "^6.3.0"
+
+react-native@0.42.3:
+  version "0.42.3"
+  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.42.3.tgz#450c8a03a5e3e991a08a426f22776dd8feb80b26"
   dependencies:
     absolute-path "^0.0.0"
     art "^0.10.0"

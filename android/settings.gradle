@@ -1,14 +1,18 @@
 rootProject.name = 'GmixrReact'
-include ':react-native-blur-image'
-project(':react-native-blur-image').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-blur-image/android')
-include ':react-native-blur'
-project(':react-native-blur').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-blur/android')
+include ':react-native-image-crop-picker'
+project(':react-native-image-crop-picker').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-image-crop-picker/android')
+include ':react-native-customized-image-picker'
+project(':react-native-customized-image-picker').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-customized-image-picker/android')
 include ':react-native-vector-icons'
 project(':react-native-vector-icons').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-vector-icons/android')
 include ':react-native-orientation'
 project(':react-native-orientation').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-orientation/android')
 include ':react-native-fetch-blob'
 project(':react-native-fetch-blob').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-fetch-blob/android')
+include ':react-native-blur-image'
+project(':react-native-blur-image').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-blur-image/android')
+include ':react-native-blur'
+project(':react-native-blur').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-blur/android')
 include ':react-native-background-timer'
 project(':react-native-background-timer').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-background-timer/android')
 include ':@remobile/react-native-marquee-label'

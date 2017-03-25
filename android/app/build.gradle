@@ -126,11 +126,13 @@ android {
 }
 
 dependencies {
-    compile project(':react-native-blur-image')
-    compile project(':react-native-blur')
+    compile project(':react-native-image-crop-picker')
+    compile project(':react-native-customized-image-picker')
     compile project(':react-native-vector-icons')
     compile project(':react-native-orientation')
     compile project(':react-native-fetch-blob')
+    compile project(':react-native-blur-image')
+    compile project(':react-native-blur')
     compile project(':react-native-background-timer')
     compile project(':@remobile/react-native-marquee-label')
     compile fileTree(dir: "libs", include: ["*.jar"])

@@ -3,11 +3,13 @@ package com.gmixrreact;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
-import com.aigegou.blur.BlurImageViewPackage;
-import com.cmcewen.blurview.BlurViewPackage;
+import com.reactnative.ivpusic.imagepicker.PickerPackage;
+import com.mg.app.PickerPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.github.yamill.orientation.OrientationPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
+import com.aigegou.blur.BlurImageViewPackage;
+import com.cmcewen.blurview.BlurViewPackage;
 import com.ocetnik.timer.BackgroundTimerPackage;
 import com.remobile.marqueeLabel.RCTMarqueeLabelPackage;
 import com.facebook.react.ReactNativeHost;
@@ -30,11 +32,13 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-            new BlurImageViewPackage(),
-            new BlurViewPackage(),
+            new PickerPackage(),
+            new PickerPackage(),
             new VectorIconsPackage(),
             new OrientationPackage(this),
             new RNFetchBlobPackage(),
+            new BlurImageViewPackage(),
+            new BlurViewPackage(),
             new BackgroundTimerPackage(),
             new RCTMarqueeLabelPackage()
       );

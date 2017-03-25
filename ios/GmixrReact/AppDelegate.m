@@ -23,16 +23,17 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+  
   NSURL *jsCodeLocation;
-
+  
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
-
+  
   RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
                                                       moduleName:@"GmixrReact"
                                                initialProperties:nil
                                                    launchOptions:launchOptions];
   rootView.backgroundColor = [UIColor blackColor];
-
+  
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
   rootViewController.view = rootView;
@@ -41,8 +42,7 @@
   
   [[UIApplication sharedApplication] setIdleTimerDisabled: YES];
   
-  
-SPTAuth *auth = [SPTAuth defaultInstance];
+  SPTAuth *auth = [SPTAuth defaultInstance];
   auth.clientID = @kClientId;
   auth.requestedScopes = @[SPTAuthStreamingScope];
   auth.redirectURL = [NSURL URLWithString:@kCallbackURL];
@@ -53,7 +53,8 @@ SPTAuth *auth = [SPTAuth defaultInstance];
   auth.tokenRefreshURL = [NSURL URLWithString:@kTokenRefreshServiceURL];
 #endif
   auth.sessionUserDefaultsKey = @kSessionUserDefaultsKey;
-
+  
+  
   return YES;
   
 }
@@ -89,3 +90,4 @@ SPTAuth *auth = [SPTAuth defaultInstance];
 
 
 @end
+
