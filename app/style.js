@@ -42,9 +42,31 @@ module.exports = StyleSheet.create({
     position: 'relative'
   },
   backgroundView: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  actionView: {
+  	position:'absolute', 
+    left:0,
+    right:0,
+    top:0,
+    bottom:64,
+    overflow: 'hidden'
+  },
+  controlView: {
+	position: 'absolute',
+    top:0,
+    left:0,
+    right:0,
+    backgroundColor: 'transparent',
+  },
+  listView: {
+    position:'absolute', 
+    left:0,
+    right:0,
+    top:0,
+    backgroundColor: 'transparent',
   },
   topPlayerView: {
 
@@ -182,14 +204,6 @@ module.exports = StyleSheet.create({
     marginLeft: 10,
     marginRight: 0,
   },
-  listView: {
-    position:'absolute', 
-    bottom:72,
-    top:8,
-    left:0,
-    right:0,
-    backgroundColor: 'transparent',
-  },
   row: {
     flex: 1,
     paddingTop: 4,
@@ -202,6 +216,7 @@ module.exports = StyleSheet.create({
     width:48, 
     height: 48, 
     marginRight: 8,
+    backgroundColor:'rgb(40,40,40)'
   },
   listTitleText: {
     fontSize:15,

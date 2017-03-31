@@ -30,11 +30,8 @@ var defaultImage = defaultImages[0]
 const {height, width} = Dimensions.get('window')
 
 
-// NAtive Modules
+// Native Modules
 const SpotifyAuth = NativeModules.SpotifyAuth
-
-
-var reset = false
 
 
 // Default View on Launch

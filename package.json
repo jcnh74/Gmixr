@@ -9,6 +9,7 @@
   "dependencies": {
     "@remobile/react-native-marquee": "^1.0.1",
     "@remobile/react-native-marquee-label": "^1.0.3",
+    "immutability-helper": "^2.1.2",
     "lodash": "^4.17.4",
     "moment": "^2.17.1",
     "react": "15.4.2",
@@ -16,7 +17,6 @@
     "react-native-background-timer": "^1.0.0",
     "react-native-blur": "^2.0.0",
     "react-native-blur-image": "^1.0.6",
-    "react-native-customized-image-picker": "0.0.24",
     "react-native-fetch-blob": "^0.10.2",
     "react-native-image-crop-picker": "^0.12.8",
     "react-native-orientation": "^1.17.0",

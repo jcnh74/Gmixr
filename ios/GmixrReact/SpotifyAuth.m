@@ -432,25 +432,41 @@ RCT_EXPORT_METHOD(currentTrackURI:(RCTResponseSenderBlock)block)
   SPTAudioStreamingController *sharedIn = [SPTAudioStreamingController sharedInstance];
   NSLog(@"self.player.metadata.currentTrack: %@",[[[sharedIn metadata] currentTrack] uri]);
   NSString *uri = [[[sharedIn metadata] currentTrack] uri];
-  block(@[uri]);
+
+  if(uri){
+    block(@[uri]);
+  }else{
+    block(@[@""]);
+  }
+
 }
 
 //Returns the current track URI, playing or not
 RCT_EXPORT_METHOD(nextTrackURI:(RCTResponseSenderBlock)block)
 {
   SPTAudioStreamingController *sharedIn = [SPTAudioStreamingController sharedInstance];
-  NSLog(@"self.player.metadata.currentTrack: %@",[[[sharedIn metadata] currentTrack] uri]);
+  NSLog(@"self.player.metadata.nextTrack: %@",[[[sharedIn metadata] nextTrack] uri]);
   NSString *uri = [[[sharedIn metadata] nextTrack] uri];
-  block(@[uri]);
+
+  if(uri){
+    block(@[uri]);
+  }else{
+    block(@[@""]);
+  }
 }
 
 //Returns the current track URI, playing or not
 RCT_EXPORT_METHOD(previousTrackURI:(RCTResponseSenderBlock)block)
 {
   SPTAudioStreamingController *sharedIn = [SPTAudioStreamingController sharedInstance];
-  NSLog(@"self.player.metadata.currentTrack: %@",[[[sharedIn metadata] currentTrack] uri]);
+  NSLog(@"self.player.metadata.prevTrack: %@",[[[sharedIn metadata] prevTrack] uri]);
   NSString *uri = [[[sharedIn metadata] prevTrack] uri];
-  block(@[uri]);
+
+  if(uri){
+    block(@[uri]);
+  }else{
+    block(@[@""]);
+  }
 }
 
 //Returns the currenly playing track index

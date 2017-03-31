@@ -8,8 +8,7 @@
 import React, { Component } from 'react'
 import { Router, Scene } from 'react-native-router-flux';
 
-
-
+// Views
 import LogInView from './LogInView';
 import NeedPrimium from './NeedPrimium';
 import PlayerView from './PlayerView';
