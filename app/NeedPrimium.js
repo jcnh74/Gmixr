@@ -2,11 +2,14 @@
 import React, { Component } from 'react'
 import { Actions } from 'react-native-router-flux';
 import {
+  NativeModules,
   Text,
   TouchableHighlight,
   View
 } from 'react-native'
 
+// Native Modules
+const SpotifyAuth = NativeModules.SpotifyAuth
 
 var styles = require('./style');
 

@@ -42,6 +42,7 @@ var styles = require('./style')
 import PlaylistRow from './components/PlaylistRow'
 import MediaView from './components/MediaView'
 import ControlView from './components/ControlView'
+import MusicSelectView from './components/MusicSelectView'
 
 // Native Modules
 const SpotifyAuth = NativeModules.SpotifyAuth
@@ -107,6 +108,7 @@ export default class PlayerView extends Component {
         height: height
       },
       currentUser: [],
+      userAquired: false,
       userPlaylists: [],
       tracks: [],
       tracksURIs: [],
@@ -431,7 +433,8 @@ export default class PlayerView extends Component {
       //console.log(responseJson)
       if(responseJson.product == "premium"){
         this.setState({
-          currentUser: responseJson
+          currentUser: responseJson,
+          userAquired:true
         })
         this._getUsersPlaylists()
       }else{
@@ -880,7 +883,7 @@ export default class PlayerView extends Component {
 
   // A selected Playlist From the Playlist ListView
   // TODO: need to add more functionality to choosing music from Spotify
-  _choosePlaylist(playlistURI){
+  _choosePlaylist(playlist){
 
     this._cancelGetData()
 
@@ -889,7 +892,7 @@ export default class PlayerView extends Component {
     var playlists = this.state.userPlaylists
 
     var playlist = playlists.filter((item) => {
-      return item.uri == playlistURI
+      return item.uri == playlist.uri
     })
 
 
@@ -1013,27 +1016,31 @@ export default class PlayerView extends Component {
               blurRadius={30}
             />
             <View style={styles.actionView}>
-              <ListView
-                style={[styles.listView, {top: (this.state.showListView) ? 0 : height - vidHeight- 64, height: height - vidHeight - 64 }]}
-                dataSource={this.state.dataSource}
-                renderRow={(rowData, sectionID, rowID) => <PlaylistRow key={rowID} data={rowData} choosePlaylist={(playlist) => this._choosePlaylist(playlist)} />} 
-                enableEmptySections={true}  />
-              <ControlView
-                styles={[styles.controlView, {top: (this.state.showListView) ? height - vidHeight - 64 : 0, height: height - vidHeight - 64}]}
-                textTerms={this.state.textTerms}
-                currentTrack={this.state.currentTrack}
-                previousTrack={this.state.previousTrack}
-                nextTrack={this.state.nextTrack}
-                isShuffling={this.state.isShuffling}
-                isPlaying={this.state.isPlaying}
-                isRepeating={this.state.isRepeating}
-                _startTimers={this._startTimers.bind(this)}
-                _clearTimers={this._clearTimers.bind(this)}
-                _setState={(state) => this._setState(state)}
-                _newGifRequest={(event) => this._newGifRequest(event)}
-                _cancelGetData={this._cancelGetData.bind(this)}
-                events={this.eventEmitter}
-               />
+              {(this.state.showListView) ? (
+                <MusicSelectView
+                  ref="musicSelectView"
+                  userAquired={this.state.userAquired}
+                  currentUser={this.state.currentUser}
+                  layoutProps={this.state.layoutProps}
+                  choosePlaylist={(playlist) => this._choosePlaylist(playlist)} />
+              ) : (
+                <ControlView
+                  ref="controlView"
+                  styles={[styles.controlView, {top: (this.state.showListView) ? height - vidHeight - 64 : 0, height: height - vidHeight - 64}]}
+                  textTerms={this.state.textTerms}
+                  currentTrack={this.state.currentTrack}
+                  previousTrack={this.state.previousTrack}
+                  nextTrack={this.state.nextTrack}
+                  isShuffling={this.state.isShuffling}
+                  isPlaying={this.state.isPlaying}
+                  isRepeating={this.state.isRepeating}
+                  _startTimers={this._startTimers.bind(this)}
+                  _clearTimers={this._clearTimers.bind(this)}
+                  _setState={(state) => this._setState(state)}
+                  _newGifRequest={(event) => this._newGifRequest(event)}
+                  _cancelGetData={this._cancelGetData.bind(this)}
+                  events={this.eventEmitter} />
+              )}
              </View>
           </View>
         </View>

@@ -36,7 +36,7 @@ export default class PlaylistRow extends Component {
   render() {
 
     return (
-      <TouchableHighlight style={styles.row} onPress={() => this._setPlaylist(this.props.data.uri)} activeOpacity={1} underlayColor="transparent">
+      <TouchableHighlight style={styles.row} onPress={() => this._setPlaylist(this.props.data)} activeOpacity={1} underlayColor="transparent">
         <View style={styles.flexRow}>
           <View>
             {(this.props.data.image != '') ? (
