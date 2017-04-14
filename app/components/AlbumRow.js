@@ -21,22 +21,22 @@ const {height, width} = Dimensions.get('window')
 var styles = require('../style');
 
 
-export default class PlaylistRow extends Component {
+export default class AlbumRow extends Component {
   constructor(props) {
     super(props)
 
-    this._setPlaylist = this._setPlaylist.bind(this)
+    this._setAlbum = this._setAlbum.bind(this)
 
   }
 
-  _setPlaylist(playlist){
-    this.props.choosePlaylist(playlist)
+  _setAlbum(playlist){
+    this.props.chooseAlbum(playlist)
   }
 
   render() {
 
     return (
-      <TouchableHighlight style={styles.row} onPress={() => this._setPlaylist(this.props.data)} activeOpacity={1} underlayColor="transparent">
+      <TouchableHighlight style={styles.row} onPress={() => this._setAlbum(this.props.data)} activeOpacity={1} underlayColor="transparent">
         <View style={styles.flexRow}>
           <View>
             {(this.props.data.image != '') ? (
@@ -50,7 +50,7 @@ export default class PlaylistRow extends Component {
               {this.props.data.name}
             </Text>
             <Text style={[styles.listDescText, {width: width - (56 + 8) }]} numberOfLines={1}>
-              {'by ' + this.props.data.owner + ' · ' + this.props.data.total + ' songs'}
+              {this.props.data.artist}
             </Text>
           </View>
         </View>

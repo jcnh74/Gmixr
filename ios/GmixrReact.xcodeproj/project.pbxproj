@@ -39,6 +39,7 @@
 		2D02E4C91E0B4AEC006451C7 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DAD3EA31DF850E9000B6D8A /* libReact.a */; };
 		2DCD954D1E0B4F2C00145EB5 /* GmixrReactTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* GmixrReactTests.m */; };
 		39C07FCE95F4477A82D8C8DC /* libRCTOrientation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA34AED31BEB49448EFE7B30 /* libRCTOrientation.a */; };
+		4D099849B99F45B3B8D84CDB /* libRNiTunes.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 483164AAE9F3421D968AEFAA /* libRNiTunes.a */; };
 		5E9157361DD0AC6A00FF2AA8 /* libRCTAnimation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E9157331DD0AC6500FF2AA8 /* libRCTAnimation.a */; };
 		638FAFA092FB41558CCB37BD /* libimageCropPicker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C9CBE3FC00B45BE8A3637F6 /* libimageCropPicker.a */; };
 		6BA66F06D96445F28AAF10AE /* libRNVectorIcons.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E88EC669B8B1435D896DCCBA /* libRNVectorIcons.a */; };
@@ -249,6 +250,13 @@
 			remoteGlobalIDString = 134814201AA4EA6300B7C361;
 			remoteInfo = RCTLinking;
 		};
+		7B2AF4001E9F356E00B5F655 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 22D073DB471C48DDBB24A8A6 /* RNiTunes.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = FFEC319C1C46B4EB0080A80E;
+			remoteInfo = RNiTunes;
+		};
 		7B4F202C1E79411B00E7E121 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7A30BE6E92D34EFCBA65F2A9 /* RNBlur.xcodeproj */;
@@ -344,9 +352,11 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = GmixrReact/main.m; sourceTree = "<group>"; };
 		146833FF1AC3E56700842450 /* React.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = React.xcodeproj; path = "../node_modules/react-native/React/React.xcodeproj"; sourceTree = "<group>"; };
 		1551BA57F3284B1AACCB1F4C /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
+		22D073DB471C48DDBB24A8A6 /* RNiTunes.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNiTunes.xcodeproj; path = "../node_modules/react-native-itunes/RNiTunes.xcodeproj"; sourceTree = "<group>"; };
 		2D02E47B1E0B4A5D006451C7 /* GmixrReact-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "GmixrReact-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E4901E0B4A5D006451C7 /* GmixrReact-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "GmixrReact-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CC1BE6B65C74233B1CC9118 /* libRNFetchBlob.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNFetchBlob.a; sourceTree = "<group>"; };
+		483164AAE9F3421D968AEFAA /* libRNiTunes.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNiTunes.a; sourceTree = "<group>"; };
 		5C75930C39734205BC3787AB /* libRNBlur.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNBlur.a; sourceTree = "<group>"; };
 		5C9CBE3FC00B45BE8A3637F6 /* libimageCropPicker.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libimageCropPicker.a; sourceTree = "<group>"; };
 		5E91572D1DD0AC6500FF2AA8 /* RCTAnimation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTAnimation.xcodeproj; path = "../node_modules/react-native/Libraries/NativeAnimation/RCTAnimation.xcodeproj"; sourceTree = "<group>"; };
@@ -427,6 +437,7 @@
 				6BA66F06D96445F28AAF10AE /* libRNVectorIcons.a in Frameworks */,
 				22EA0C7ED6CB4971AD173224 /* libRNBlur.a in Frameworks */,
 				638FAFA092FB41558CCB37BD /* libimageCropPicker.a in Frameworks */,
+				4D099849B99F45B3B8D84CDB /* libRNiTunes.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -602,6 +613,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		7B2AF3DE1E9F356E00B5F655 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7B2AF4011E9F356E00B5F655 /* libRNiTunes.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		7B4F200D1E79411B00E7E121 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -696,6 +715,7 @@
 				BCC6A258D4484787A9716EBF /* RCTOrientation.xcodeproj */,
 				0F64522F30064BC1A227FA18 /* RNVectorIcons.xcodeproj */,
 				7A30BE6E92D34EFCBA65F2A9 /* RNBlur.xcodeproj */,
+				22D073DB471C48DDBB24A8A6 /* RNiTunes.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -927,6 +947,10 @@
 					ProjectRef = BC8148467B0B4D318F8E1C52 /* RNFetchBlob.xcodeproj */;
 				},
 				{
+					ProductGroup = 7B2AF3DE1E9F356E00B5F655 /* Products */;
+					ProjectRef = 22D073DB471C48DDBB24A8A6 /* RNiTunes.xcodeproj */;
+				},
+				{
 					ProductGroup = 7BF52E2D1E6E8E5B006865D2 /* Products */;
 					ProjectRef = 0F64522F30064BC1A227FA18 /* RNVectorIcons.xcodeproj */;
 				},
@@ -1108,6 +1132,13 @@
 			fileType = archive.ar;
 			path = libRCTLinking.a;
 			remoteRef = 78C398B81ACF4ADC00677621 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		7B2AF4011E9F356E00B5F655 /* libRNiTunes.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNiTunes.a;
+			remoteRef = 7B2AF4001E9F356E00B5F655 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		7B4F202D1E79411B00E7E121 /* libRNBlur.a */ = {
@@ -1316,12 +1347,14 @@
 					"$(SRCROOT)/../node_modules/react-native-blur/ios",
 					"$(SRCROOT)/../node_modules/react-native-smart-splash-screen/ios/RCTSplashScreen/RCTSplashScreen",
 					"$(SRCROOT)/../node_modules/react-native-customized-image-picker/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-itunes/RNiTunes",
 				);
 				INFOPLIST_FILE = GmixrReactTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
@@ -1358,12 +1391,14 @@
 					"$(SRCROOT)/../node_modules/react-native-blur/ios",
 					"$(SRCROOT)/../node_modules/react-native-smart-splash-screen/ios/RCTSplashScreen/RCTSplashScreen",
 					"$(SRCROOT)/../node_modules/react-native-customized-image-picker/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-itunes/RNiTunes",
 				);
 				INFOPLIST_FILE = GmixrReactTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
@@ -1413,6 +1448,7 @@
 					"$(SRCROOT)/../node_modules/react-native-smart-splash-screen/ios/RCTSplashScreen/RCTSplashScreen",
 					"$(SRCROOT)/node_modules/react-native/React/**",
 					"$(SRCROOT)/../node_modules/react-native-customized-image-picker/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-itunes/RNiTunes",
 				);
 				INFOPLIST_FILE = GmixrReact/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
@@ -1460,6 +1496,7 @@
 					"$(SRCROOT)/../node_modules/react-native-smart-splash-screen/ios/RCTSplashScreen/RCTSplashScreen",
 					"$(SRCROOT)/node_modules/react-native/React/**",
 					"$(SRCROOT)/../node_modules/react-native-customized-image-picker/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-itunes/RNiTunes",
 				);
 				INFOPLIST_FILE = GmixrReact/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
@@ -1498,11 +1535,13 @@
 					"$(SRCROOT)/../node_modules/react-native-blur/ios",
 					"$(SRCROOT)/../node_modules/react-native-smart-splash-screen/ios/RCTSplashScreen/RCTSplashScreen",
 					"$(SRCROOT)/../node_modules/react-native-customized-image-picker/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-itunes/RNiTunes",
 				);
 				INFOPLIST_FILE = "GmixrReact-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
@@ -1546,11 +1585,13 @@
 					"$(SRCROOT)/../node_modules/react-native-blur/ios",
 					"$(SRCROOT)/../node_modules/react-native-smart-splash-screen/ios/RCTSplashScreen/RCTSplashScreen",
 					"$(SRCROOT)/../node_modules/react-native-customized-image-picker/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-itunes/RNiTunes",
 				);
 				INFOPLIST_FILE = "GmixrReact-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
@@ -1595,6 +1636,7 @@
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.facebook.REACT.GmixrReact-tvOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1619,6 +1661,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",

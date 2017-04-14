@@ -21,36 +21,38 @@ const {height, width} = Dimensions.get('window')
 var styles = require('../style');
 
 
-export default class PlaylistRow extends Component {
+export default class ArtistRow extends Component {
   constructor(props) {
     super(props)
 
-    this._setPlaylist = this._setPlaylist.bind(this)
+    this._setArtist = this._setArtist.bind(this)
 
   }
 
-  _setPlaylist(playlist){
-    this.props.choosePlaylist(playlist)
+  _setArtist(artist){
+    this.props.chooseArtist(artist)
   }
 
   render() {
 
     return (
-      <TouchableHighlight style={styles.row} onPress={() => this._setPlaylist(this.props.data)} activeOpacity={1} underlayColor="transparent">
+      <TouchableHighlight style={styles.row} onPress={() => this._setArtist(this.props.data)} activeOpacity={1} underlayColor="transparent">
         <View style={styles.flexRow}>
           <View>
-            {(this.props.data.image != '') ? (
-              <Image style={styles.playlistThumbnail} source={{ uri: this.props.data.image}} />
-            ) : (
-              <View style={styles.playlistThumbnail} />
-            )}
+            <View style={{width: 48, height:48, borderRadius: 24, overflow: 'hidden'}}>
+              {(this.props.data.image != '') ? (
+                <Image style={styles.playlistThumbnail} source={{ uri: this.props.data.image}} />
+              ) : (
+                <View style={styles.playlistThumbnail} />
+              )}
+            </View>
           </View>
-          <View>
+          <View style={{marginLeft:8}}>
             <Text style={[styles.listTitleText, {width: width - (56 + 8) }]} numberOfLines={1}>
               {this.props.data.name}
             </Text>
             <Text style={[styles.listDescText, {width: width - (56 + 8) }]} numberOfLines={1}>
-              {'by ' + this.props.data.owner + ' · ' + this.props.data.total + ' songs'}
+              {'following'}
             </Text>
           </View>
         </View>

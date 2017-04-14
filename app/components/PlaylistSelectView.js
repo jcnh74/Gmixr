@@ -26,7 +26,7 @@ var styles = require('../style');
 const {height, width} = Dimensions.get('window')
 
 
-export default class MusicListView extends Component {
+export default class PlaylistSelectView extends Component {
   constructor(props) {
     super(props)
 
@@ -57,7 +57,7 @@ export default class MusicListView extends Component {
           playlistImage = imgArr[0].url
         }
       }
-      console.log(playlists)
+      //console.log(playlists)
       mydata.push({name:playlists[i].name, uri:playlists[i].uri, image:playlistImage, total:playlists[i].tracks.total, owner: playlists[i].owner.id})
     }
 
@@ -103,51 +103,12 @@ export default class MusicListView extends Component {
       if(responseJson.error){
         return
       }
+
       var playlists = responseJson.items
-      AsyncStorage.setItem('@GmixrStore:playlists', JSON.stringify(playlists))
+      console.log(playlists)
+      AsyncStorage.setItem( '@GmixrStore:playlists', JSON.stringify(playlists) )
 
       this._processPlaylists(playlists)
-      
-
-      // var mydata = []
-      // for(i = 0; i < playlists.length; i++){
-      //   var imgArr = playlists[i].images
-      //   var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
-
-      //   if(typeof(imgArr) !== 'undefined' && imgArr.length){
-      //     if(imgArr[0].url){
-      //       playlistImage = imgArr[0].url
-      //     }
-      //   }
-
-      //   mydata.push({name:playlists[i].name, uri:playlists[i].uri, image:playlistImage, total:playlists[i].tracks.total, owner: playlists[i].owner.id})
-      // }
-
-      // this.setState({
-      //   userPlaylists: playlists,
-      //   dataSource: ds.cloneWithRows(mydata),
-      // })
-
-      // AsyncStorage.setItem('@GmixrStore:playlists', JSON.stringify(playlists))
-
-      // var imgArr = playlists[0].images
-      // var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
-
-      // if(imgArr.length){
-      //   playlistImage = imgArr[0].url
-      // }else if(typeof(this.props.currentUser.images) !== 'undefined' && this.props.currentUser.images.length){
-      //   playlistImage = this.props.currentUser.images[0].url
-      // }
-
-      // this.setState({
-      //   currentPlaylist: {
-      //     name: playlists[0].name,
-      //     owner: playlists[0].owner.id,
-      //     total: playlists[0].tracks.total,
-      //     image: playlistImage,
-      //     playlist: playlists[0]
-      //   }
-      // })
       
     })
     .catch((err) => {
@@ -158,6 +119,8 @@ export default class MusicListView extends Component {
   // If we can, respond to fetch function
   // TODO: May be able to bypass this function
   _getUsersPlaylists(){
+
+    //AsyncStorage.removeItem('@GmixrStore:playlists')
 
     AsyncStorage.getItem('@GmixrStore:playlists', (err, res) => {
       if(res){
@@ -173,17 +136,17 @@ export default class MusicListView extends Component {
             AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
               this._fetchPlaylists(res)
             })
+
           }
         })
 
       }
     })
 
-    
   }
 
   _choosePlaylist(playlist){
-    this.props.choosePlaylist(playlist)
+    this.props._choosePlaylist(playlist)
   }
 
 
@@ -194,7 +157,7 @@ export default class MusicListView extends Component {
     return (
       <View>
     		<ListView
-          style={[styles.listView, {top: 0, height: height - vidHeight - 64 }]}
+          style={[styles.listView, {top: 0, height: height - vidHeight - 94 }]}
           dataSource={this.state.dataSource}
           renderRow={(rowData, sectionID, rowID) => <PlaylistRow key={rowID} data={rowData} choosePlaylist={(playlist) => this._choosePlaylist(playlist)} />} 
           enableEmptySections={true}  />
@@ -203,12 +166,16 @@ export default class MusicListView extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if(nextProps.userAquired){
-      this._getUsersPlaylists()
-    }
+    // if(nextProps.userAquired){
+    //   //this._getUsersPlaylists()
+    // }
   }
   componentDidMount() {
-    console.log(this.state.userPlaylists)
+    console.log('PlaylistSelectView componentDidMount')
+
+
+    this.props.events.addListener('userAquired', this._getUsersPlaylists, this)
+
     if(this.props.userAquired){
       this._getUsersPlaylists()
     }

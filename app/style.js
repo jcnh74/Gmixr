@@ -51,15 +51,15 @@ module.exports = StyleSheet.create({
     left:0,
     right:0,
     top:0,
-    bottom:64,
+    bottom:50,
     overflow: 'hidden'
   },
   controlView: {
-	position: 'absolute',
+    position: 'absolute',
     top:0,
     left:0,
     right:0,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0,0,0,0.1)',
   },
   listView: {
     position:'absolute', 
@@ -95,14 +95,43 @@ module.exports = StyleSheet.create({
     color:'white',
     height: 0, 
     overflow: 'hidden',
-    backgroundColor:'rgba(0,0,0,0.3)'
-
+    backgroundColor:'rgba(0,0,0,0.2)'
   },
   controls: {
     flex: 1,
     flexDirection:'row',
     paddingTop:40,
     paddingBottom:40,
+  },
+  miniControls: {
+    flex: 1,
+    flexDirection:'row',
+    height:42
+  },
+  miniButton: {
+    flex:-1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width:36,
+    height:36,
+    marginTop: 4,
+  },
+  miniPlayerTrack: {
+    position: 'absolute',
+    top:0,
+    left:0,
+    right:0,
+    height:2,
+    backgroundColor:darkgray
+  },
+  miniPlayerTrackProgress: {
+    position: 'absolute',
+    top:0,
+    bottom:0,
+    left:0,
+    width:0,
+    alignSelf:'flex-start',
+    backgroundColor:'white'
   },
   smallButton: {
     justifyContent: 'center',
@@ -146,6 +175,14 @@ module.exports = StyleSheet.create({
     color: 'white',
     backgroundColor: 'transparent',
   },
+  mediumTextMini: {
+    fontSize: 11,
+    textAlign: 'center',
+    marginTop: 0,
+    marginBottom: 0,
+    color: 'white',
+    backgroundColor: 'transparent',
+  },
   monoText: {
     fontSize: 14,
     textAlign: 'center',
@@ -163,7 +200,24 @@ module.exports = StyleSheet.create({
     marginTop: 10,
     marginBottom: 0,
   },
+  marqueeViewMini: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    height:18,
+    marginTop: 4,
+    marginBottom: 0,
+  },
   marqueeLabel: {
+    flexGrow: 1,
+    height:30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    width:width - 100,
+    color:'#FFF',
+  },
+  marqueeLabelMini: {
     flexGrow: 1,
     height:30,
     justifyContent: 'center',
@@ -185,17 +239,40 @@ module.exports = StyleSheet.create({
     fontWeight:'500',
     color:'#FFF',
   },
+  marqueeTextMini: {
+    flexGrow: 1,
+    lineHeight:18,
+    height:18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    textAlign: 'center',
+    backgroundColor: 'transparent',
+    width:width - 100,
+    fontSize:15,
+    fontWeight:'500',
+    color:'#FFF',
+  },
   bottomBar: {
     flex: 1,
     flexDirection:'row',
     position: 'absolute',
     width: width,
-    height: 64,
+    height: 50,
     paddingBottom:4,
     paddingTop: 4,
     bottom: 0,
     left: 0,
     backgroundColor:'rgba(0,0,0,0.3)'
+  },
+  tabText: {
+    color:'#FFF',
+    fontSize: 11
+  },
+  tabItem: {
+    flex: 1,
+    width: width/5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   avatar: {
     width:36, 
@@ -211,6 +288,14 @@ module.exports = StyleSheet.create({
     paddingLeft: 8,
     paddingRight: 8,
     height:56,
+  },
+  slimrow: {
+    flex: 1,
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 8,
+    paddingRight: 8,
+    height:24,    
   },
   playlistThumbnail: {
     width:48, 

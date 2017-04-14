@@ -28,7 +28,10 @@ import { Actions } from 'react-native-router-flux'
 import moment from 'moment'
 import RNFetchBlob from 'react-native-fetch-blob'
 
+import FAIcon from 'react-native-vector-icons/FontAwesome'
+import SLIcon from 'react-native-vector-icons/SimpleLineIcons'
 import IOIcon from 'react-native-vector-icons/Ionicons'
+
 import Orientation from 'react-native-orientation'
 import BlurImage from 'react-native-blur-image'
 import BackgroundTimer from 'react-native-background-timer'
@@ -42,7 +45,11 @@ var styles = require('./style')
 import PlaylistRow from './components/PlaylistRow'
 import MediaView from './components/MediaView'
 import ControlView from './components/ControlView'
-import MusicSelectView from './components/MusicSelectView'
+import PlaylistSelectView from './components/PlaylistSelectView'
+import SongSelectView from './components/SongSelectView'
+import SearchSelectView from './components/SearchSelectView'
+import AlbumSelectView from './components/AlbumSelectView'
+import ArtistSelectView from './components/ArtistSelectView'
 
 // Native Modules
 const SpotifyAuth = NativeModules.SpotifyAuth
@@ -97,6 +104,7 @@ export default class PlayerView extends Component {
     this._orientationDidChange = this._orientationDidChange.bind(this)
     this._launchSelector = this._launchSelector.bind(this)
     this._choosePlaylist = this._choosePlaylist.bind(this)
+    this._chooseTrack = this._chooseTrack.bind(this)
 
     this.eventEmitter = new EventEmitter()
 
@@ -135,12 +143,12 @@ export default class PlayerView extends Component {
       nextTrack: {
         uri: '',
       },
-      currentPlaylist: {
+      currentPlayItem: {
         name: '',
         owner: '',
         total: 0,
         image: '',
-        playlist: [],
+        playitem: [],
         gifsURLS: [],
         gifsLocal: [],
         gif: '/Users/johnhanusek/Development/Gmixr/GmixrReact/assets/gmixr-logo2.gif',
@@ -155,6 +163,8 @@ export default class PlayerView extends Component {
       currenttrackSaved: false,
       amountLoaded: 0,
       showListView: true,
+      currentListView: 'playlists',
+      savedListView: 'playlists',
       dataSource: ds.cloneWithRows([]),
       tasks: []
 
@@ -227,7 +237,7 @@ export default class PlayerView extends Component {
       if(gifsLocal.length){
         var image = gifsLocal[Math.floor(Math.random() * gifsLocal.length)]
         this.setState({
-          currentPlaylistGif: image
+          currentPlayItemGif: image
         })
       }
     }
@@ -301,121 +311,8 @@ export default class PlayerView extends Component {
 
   }
 
-  // Get track info from current playlist
-  _fetchPlaylistsTracks(bearer, playlistURL){
-
-    fetch(playlistURL, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer '+bearer
-      }
-    })
-    .then((response) => response.json())
-    .then((responseJson) => {
 
 
-
-      var tracks = responseJson.items
-      var tracksURIs = []
-
-      tracks.map( (item) => {
-        tracksURIs.push(item.track.uri)
-      })
-
-
-      this.setState({
-        tracksURIs: tracksURIs,
-        tracks: tracks,
-      })
-
-      this._getMusic()
-    })
-    .catch((err) => {
-      console.error(err)
-    })
-  }
-
-  // Get all the users Playlists
-  _fetchPlaylists(bearer){
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
-
-    fetch('https://api.spotify.com/v1/users/'+this.state.currentUser.id+'/playlists?limit=50', {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer '+bearer
-      }
-    })
-    .then((response) => response.json())
-    .then((responseJson) => {
-      if(responseJson.error){
-        return
-      }
-      var playlists = responseJson.items
-      
-
-      var mydata = []
-      for(i = 0; i < playlists.length; i++){
-        var imgArr = playlists[i].images
-        var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
-
-        if(typeof(imgArr) !== 'undefined' && imgArr.length){
-          if(imgArr[0].url){
-            playlistImage = imgArr[0].url
-          }
-        }
-
-        mydata.push({name:playlists[i].name, uri:playlists[i].uri, image:playlistImage, total:playlists[i].tracks.total, owner: playlists[i].owner.id})
-      }
-
-      this.setState({
-        userPlaylists: playlists,
-        dataSource: ds.cloneWithRows(mydata),
-      })
-
-      var imgArr = playlists[0].images
-      var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
-
-      if(imgArr.length){
-        playlistImage = imgArr[0].url
-      }else if(typeof(this.state.currentUser.images) !== 'undefined' && this.state.currentUser.images.length){
-        playlistImage = this.state.currentUser.images[0].url
-      }
-
-      this.setState({
-        currentPlaylist: {
-          name: playlists[0].name,
-          owner: playlists[0].owner.id,
-          total: playlists[0].tracks.total,
-          image: playlistImage,
-          playlist: playlists[0]
-        }
-      })
-      
-    })
-    .catch((err) => {
-      console.error(err)
-    })
-  }
-
-  // If we can, respond to fetch function
-  // TODO: May be able to bypass this function
-  _getUsersPlaylists(){
-
-    SpotifyAuth.getToken((result)=>{
-
-      if(result){
-
-        this._fetchPlaylists(result)
-
-      }else{
-        AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-          this._fetchPlaylists(res)
-        })
-      }
-    })
-  }
 
   // User is logged in, lets get some info.
   _fetchUser(bearer){
@@ -430,13 +327,12 @@ export default class PlayerView extends Component {
     })
     .then((response) => response.json())
     .then((responseJson) => {
-      //console.log(responseJson)
+      
       if(responseJson.product == "premium"){
         this.setState({
           currentUser: responseJson,
           userAquired:true
         })
-        this._getUsersPlaylists()
       }else{
         Actions.notice()
         //this.props.navigator.replace({component: NeedPrimium})
@@ -470,9 +366,9 @@ export default class PlayerView extends Component {
   // Start the timer, set the playlist and update some states
   _getMusic() {
 
-    var currentPlaylist = this.state.currentPlaylist.playlist
+    var currentPlayItem = this.state.currentPlayItem.playitem
 
-    SpotifyAuth.playSpotifyURI(currentPlaylist.uri, 0, 0, (error)=>{
+    SpotifyAuth.playSpotifyURI(currentPlayItem.uri, 0, 0, (error)=>{
       if(error){
         console.log(error)
       }
@@ -887,33 +783,16 @@ export default class PlayerView extends Component {
 
     this._cancelGetData()
 
-    // if(!this.state.loadingGifs){
-
-    var playlists = this.state.userPlaylists
-
-    var playlist = playlists.filter((item) => {
-      return item.uri == playlist.uri
-    })
-
-
-
-    var imgArr = playlist[0].images
-    var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
-
-    if(imgArr.length){
-      playlistImage = imgArr[0].url
-    }else if(typeof(this.state.currentUser.images) !== 'undefined' && this.state.currentUser.images.length){
-      playlistImage = this.state.currentUser.images[0].url
-    }
 
     this.setState({
       showListView: false,
-      currentPlaylist: {
-        name: playlist[0].name,
-        owner: playlist[0].owner.id,
-        total: playlist[0].tracks.total,
-        image: playlistImage,
-        playlist: playlist[0]
+      currentListView: 'remove',
+      currentPlayItem: {
+        name: playlist.name,
+        owner: playlist.owner,
+        total: playlist.total,
+        image: playlist.image,
+        playitem: playlist,
       }
     }, function() {
       this._clearTimers()
@@ -922,6 +801,72 @@ export default class PlayerView extends Component {
     })
       
     //}
+  }
+
+  _chooseTrack(track){
+
+   this._cancelGetData()
+
+    this.setState({
+      showListView: false,
+      currentListView: 'remove',
+      currentPlayItem: {
+        name: track.name,
+        owner: track.artist,
+        total: 1,
+        image: '',
+        playitem: track,
+      }
+    }, function() {
+      this._clearTimers()
+
+      this._getMusic()
+    })
+
+  }
+
+  _chooseArtist(artist){
+
+   this._cancelGetData()
+
+    this.setState({
+      showListView: false,
+      currentListView: 'remove',
+      currentPlayItem: {
+        name: artist.name,
+        owner: '',
+        total: 1,
+        image: artist.image,
+        playitem: artist,
+      }
+    }, function() {
+      this._clearTimers()
+
+      this._getMusic()
+    })
+
+  }
+
+  _chooseAlbum(album){
+
+   this._cancelGetData()
+
+    this.setState({
+      showListView: false,
+      currentListView: 'remove',
+      currentPlayItem: {
+        name: album.name,
+        owner: album.artist,
+        total: 1,
+        image: album.image,
+        playitem: album,
+      }
+    }, function() {
+      this._clearTimers()
+
+      this._getMusic()
+    })
+
   }
 
     // If from IOS orientation was updated
@@ -951,15 +896,24 @@ export default class PlayerView extends Component {
     }
   }
 
-  _launchSelector(){
+  _launchSelector(type){
     LayoutAnimation.easeInEaseOut()
     this.setState({
-      showListView: (this.state.showListView) ? false : true
+      currentListView: type,
+      savedListView: type,
+      showListView: true
     })
   }
 
   _setState(state){
     this.setState(state)
+  }
+
+  _setView(bool){
+    this.setState({
+      showListView: bool,
+      currentListView: (bool) ? this.state.savedListView : 'remove'
+    })
   }
 
   render() {
@@ -989,8 +943,8 @@ export default class PlayerView extends Component {
     var listTextWidth = this.state.layoutProps.width - (56 + 8)
 
     var playlistInfo = ''
-    if(this.state.currentPlaylist.owner != ''){
-      playlistInfo = 'by ' + this.state.currentPlaylist.owner + ' · ' + this.state.currentPlaylist.total + ' songs'
+    if(this.state.currentPlayItem.owner != ''){
+      playlistInfo = 'by ' + this.state.currentPlayItem.owner + ' · ' + this.state.currentPlayItem.total + ' songs'
     }
 
     var textTerms = ''
@@ -1006,7 +960,7 @@ export default class PlayerView extends Component {
         <View style={styles.flex}>
           <MediaView 
             layoutProps={this.state.layoutProps}
-            source={(this.state.isPlaying && this.state.currentPlaylistGif != '') ? { uri: this.state.currentPlaylistGif } : defaultImage}
+            source={(this.state.isPlaying && this.state.currentPlayItemGif != '') ? { uri: this.state.currentPlayItemGif } : defaultImage}
             loaderWidth={loaderWidth}
             loaderOpacity={loaderOpacity} />
           <View style={[styles.controlWrap, {width: this.state.layoutProps.width, position: (this.state.layoutProps.orientation == 'landscape') ? 'absolute' : 'relative', opacity: (this.state.layoutProps.orientation == 'landscape') ? 0 : 1}]}>
@@ -1016,53 +970,145 @@ export default class PlayerView extends Component {
               blurRadius={30}
             />
             <View style={styles.actionView}>
-              {(this.state.showListView) ? (
-                <MusicSelectView
-                  ref="musicSelectView"
-                  userAquired={this.state.userAquired}
-                  currentUser={this.state.currentUser}
-                  layoutProps={this.state.layoutProps}
-                  choosePlaylist={(playlist) => this._choosePlaylist(playlist)} />
-              ) : (
-                <ControlView
-                  ref="controlView"
-                  styles={[styles.controlView, {top: (this.state.showListView) ? height - vidHeight - 64 : 0, height: height - vidHeight - 64}]}
-                  textTerms={this.state.textTerms}
-                  currentTrack={this.state.currentTrack}
-                  previousTrack={this.state.previousTrack}
-                  nextTrack={this.state.nextTrack}
-                  isShuffling={this.state.isShuffling}
-                  isPlaying={this.state.isPlaying}
-                  isRepeating={this.state.isRepeating}
-                  _startTimers={this._startTimers.bind(this)}
-                  _clearTimers={this._clearTimers.bind(this)}
-                  _setState={(state) => this._setState(state)}
-                  _newGifRequest={(event) => this._newGifRequest(event)}
-                  _cancelGetData={this._cancelGetData.bind(this)}
-                  events={this.eventEmitter} />
-              )}
+              {(() => {
+                switch (this.state.currentListView) {
+                  case 'playlists':
+                    return (
+                      <PlaylistSelectView
+                        ref="playlistSelectView"
+                        userAquired={this.state.userAquired}
+                        currentUser={this.state.currentUser}
+                        layoutProps={this.state.layoutProps}
+                        _choosePlaylist={(playlist) => this._choosePlaylist(playlist)}
+                        events={this.eventEmitter} />
+                    )
+                  case 'songs':
+                    return (
+                      <SongSelectView
+                        ref="songSelectView"
+                        userAquired={this.state.userAquired}
+                        currentUser={this.state.currentUser}
+                        layoutProps={this.state.layoutProps}
+                        _chooseTrack={(track) => this._chooseTrack(track)}
+                        events={this.eventEmitter} />
+                    )
+                  case 'search':
+                    return (
+                      <SearchSelectView
+                        ref="searchelectView"
+                        userAquired={this.state.userAquired}
+                        currentUser={this.state.currentUser}
+                        layoutProps={this.state.layoutProps}
+                        choosePlaylist={(playlist) => this._choosePlaylist(playlist)}
+                        events={this.eventEmitter} />
+                    )
+                  case 'albums':
+                    return (
+                      <AlbumSelectView
+                        ref="albumSelectView"
+                        userAquired={this.state.userAquired}
+                        currentUser={this.state.currentUser}
+                        layoutProps={this.state.layoutProps}
+                        chooseAlbum={(album) => this._chooseAlbum(album)}
+                        events={this.eventEmitter} />
+                    )
+                  case 'artists':
+                    return (
+                      <ArtistSelectView
+                        ref="artistSelectView"
+                        userAquired={this.state.userAquired}
+                        currentUser={this.state.currentUser}
+                        layoutProps={this.state.layoutProps}
+                        chooseArtist={(artist) => this._chooseArtist(artist)}
+                        events={this.eventEmitter} />
+                    )
+                  case 'remove':
+                    null
+                  default :
+                    null
+                }
+              })()}
+              <ControlView
+                ref="controlView"
+                styles={[styles.controlView, {top: (this.state.showListView) ? height - vidHeight - 94 : 0, height: (this.state.showListView) ? 44 : height - vidHeight - 50}]}
+                mini={this.state.showListView}
+                textTerms={this.state.textTerms}
+                currentTrack={this.state.currentTrack}
+                previousTrack={this.state.previousTrack}
+                nextTrack={this.state.nextTrack}
+                isShuffling={this.state.isShuffling}
+                isPlaying={this.state.isPlaying}
+                isRepeating={this.state.isRepeating}
+                _startTimers={this._startTimers.bind(this)}
+                _clearTimers={this._clearTimers.bind(this)}
+                _setView={(bool) => this._setView(bool)}
+                _setState={(state) => this._setState(state)}
+                _newGifRequest={(event) => this._newGifRequest(event)}
+                _cancelGetData={this._cancelGetData.bind(this)}
+                events={this.eventEmitter} />
              </View>
           </View>
         </View>
         <View style={[styles.bottomBar, {bottom: bottomBarbottom, opacity: (this.state.layoutProps.orientation == 'landscape') ? 0 : 1}]}>
-          <TouchableHighlight style={styles.row} onPress={this._launchSelector} activeOpacity={1} underlayColor="transparent">
-            <View style={styles.flexRow}>
-              <Image style={styles.playlistThumbnail} source={{ uri: this.state.currentPlaylist.image}} />
-              <View>
-                <Text style={[styles.listTitleText, {width: listTextWidth }]} numberOfLines={1}>
-                  {this.state.currentPlaylist.name}
-                </Text>
-                <Text style={[styles.listDescText, {width: listTextWidth }]} numberOfLines={1}>
-                  {playlistInfo}
-                </Text>
-              </View>
-              <IOIcon name="ios-search-outline" backgroundColor="transparent" color="white" size={20} />
+          <TouchableHighlight style={[styles.tabItem, {opacity: (this.state.currentListView == 'playlists') ? 1 : 0.5}]} onPress={() => this._launchSelector('playlists')} activeOpacity={1} underlayColor="transparent">
+            <View style={{justifyContent: 'center', alignItems: 'center'}}>
+              <IOIcon name="ios-musical-notes-outline" backgroundColor="transparent" color="white" size={24} />
+              <Text style={styles.tabText} numberOfLines={1}>
+                Playlists
+              </Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight style={[styles.tabItem, {opacity: (this.state.currentListView == 'songs') ? 1 : 0.5}]} onPress={() => this._launchSelector('songs')} activeOpacity={1} underlayColor="transparent">
+            <View style={{justifyContent: 'center', alignItems: 'center'}}>
+              <IOIcon name="ios-musical-note-outline" backgroundColor="transparent" color="white" size={24} />
+              <Text style={styles.tabText} numberOfLines={1}>
+                Songs
+              </Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight style={[styles.tabItem, {opacity: (this.state.currentListView == 'search') ? 1 : 0.5}]} onPress={() => this._launchSelector('search')} activeOpacity={1} underlayColor="transparent">
+            <View style={{justifyContent: 'center', alignItems: 'center'}}>
+              <IOIcon name="ios-search-outline" backgroundColor="transparent" color="white" size={24} />
+              <Text style={styles.tabText} numberOfLines={1}>
+                Search
+              </Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight style={[styles.tabItem, {opacity: (this.state.currentListView == 'albums') ? 1 : 0.5}]} onPress={() => this._launchSelector('albums')} activeOpacity={1} underlayColor="transparent">
+            <View style={{justifyContent: 'center', alignItems: 'center'}}>
+              <IOIcon name="ios-disc-outline" backgroundColor="transparent" color="white" size={24} />
+              <Text style={styles.tabText} numberOfLines={1}>
+                Albums
+              </Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight style={[styles.tabItem, {opacity: (this.state.currentListView == 'artists') ? 1 : 0.5}]} onPress={() => this._launchSelector('artists')} activeOpacity={1} underlayColor="transparent">
+            <View style={{justifyContent: 'center', alignItems: 'center'}}>
+              <IOIcon name="ios-person-outline" backgroundColor="transparent" color="white" size={24} />
+              <Text style={styles.tabText} numberOfLines={1}>
+                Artists
+              </Text>
             </View>
           </TouchableHighlight>
         </View>
       </View>
       
       )
+
+    // <TouchableHighlight style={styles.row} onPress={this._launchSelector} activeOpacity={1} underlayColor="transparent">
+    //         <View style={styles.flexRow}>
+    //           <Image style={styles.playlistThumbnail} source={{ uri: this.state.currentPlaylist.image}} />
+    //           <View>
+    //             <Text style={[styles.listTitleText, {width: listTextWidth }]} numberOfLines={1}>
+    //               {this.state.currentPlaylist.name}
+    //             </Text>
+    //             <Text style={[styles.listDescText, {width: listTextWidth }]} numberOfLines={1}>
+    //               {playlistInfo}
+    //             </Text>
+    //           </View>
+    //           <IOIcon name="ios-search-outline" backgroundColor="transparent" color="white" size={20} />
+    //         </View>
+    //       </TouchableHighlight>
 
   }
 
@@ -1117,6 +1163,9 @@ export default class PlayerView extends Component {
 
       }else if(data.object == "didChangePlaybackStatus"){
 
+      }else if(data.object == "audioStreamingDidLogin"){
+        console.log("audioStreamingDidLogin")
+        this.eventEmitter.emit('userAquired')
       }
     })
   }

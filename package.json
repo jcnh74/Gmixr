@@ -19,6 +19,7 @@
     "react-native-blur-image": "^1.0.6",
     "react-native-fetch-blob": "^0.10.2",
     "react-native-image-crop-picker": "^0.12.8",
+    "react-native-itunes": "^0.4.3",
     "react-native-orientation": "^1.17.0",
     "react-native-router-flux": "^3.38.0",
     "react-native-spotify": "^1.0.1",
