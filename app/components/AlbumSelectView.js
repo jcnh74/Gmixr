@@ -30,23 +30,21 @@ export default class AlbumSelectView extends Component {
   constructor(props) {
     super(props)
 
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
     this.state = {
-      dataSource: ds.cloneWithRows([]),
-      currentPlaylist: {
-        name: '',
-        owner: '',
-        total: '',
-        image: '',
-        playlist: [],
-      }
+      userAlbums: [],
+      dataSource: new ListView.DataSource({
+        rowHasChanged: (row1, row2) => row1 !== row2
+      }),
+      albumsData: [],
+      page: 0,
+      total: 0
     }
   }
 
   _processAlbums(tracks){
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
-    var mydata = []
+    var mydata = this.state.albumsData
+
     for(i = 0; i < tracks.length; i++){
 
       var album = tracks[i].track.album
@@ -75,38 +73,27 @@ export default class AlbumSelectView extends Component {
 
       if (!found) {
         mydata.push({name:album.name, uri:album.uri, image:playlistImage, artist: artistName})
-      }
-
- 
-      
-      
+      }      
     }
 
-
+    var page = this.state.page
 
     this.setState({
-      dataSource: ds.cloneWithRows(mydata),
+      albumsData: mydata,
+      dataSource: this.state.dataSource.cloneWithRows(mydata),
+      page: page + 1
     })
-
-  
-
-    // this.setState({
-    //   currentPlaylist: {
-    //     name: playlists[0].name,
-    //     owner: playlists[0].owner.id,
-    //     total: 1,
-    //     image: playlistImage,
-    //     playlist: playlists[0]
-    //   }
-    // })
+ 
 
   }
 
   // Get all the users Playlists
   _fetchAlbums(bearer){
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
-    fetch('https://api.spotify.com/v1/me/tracks?limit=50', {
+    var offset = this.state.page * 50
+    var userAlbums = this.state.userAlbums
+
+    fetch('https://api.spotify.com/v1/me/tracks?offset='+offset+'&limit=50', {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -118,13 +105,20 @@ export default class AlbumSelectView extends Component {
       if(responseJson.error){
         return
       }
-      //console.log(responseJson.items)
 
       var tracks = responseJson.items
+      var merge = userAlbums.concat(tracks)
 
-      AsyncStorage.setItem( '@GmixrStore:tracks', JSON.stringify(tracks) )
+      this.setState({
+        userAlbums: merge,
+        total: responseJson.total
+      })
 
-      this._processAlbums(tracks)
+      AsyncStorage.setItem( '@GmixrStore:tracks', JSON.stringify(merge) )
+
+
+      this._processAlbums(merge)
+
       
     })
     .catch((err) => {
@@ -166,6 +160,27 @@ export default class AlbumSelectView extends Component {
     this.props.chooseAlbum(albums)
   }
 
+  _onEndReached(){
+
+    var downloaded = this.state.page*50
+
+    if(this.state.total >= downloaded){
+
+      SpotifyAuth.getToken((result)=>{
+
+        if(result){
+
+          this._fetchAlbums(result)
+
+        }else{
+          AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
+            this._fetchAlbums(res)
+          })
+        }
+      })
+    }
+  }
+
 
   render() {
 
@@ -174,21 +189,21 @@ export default class AlbumSelectView extends Component {
     return (
       <View>
     		<ListView
+          ref="listview"
           style={[styles.listView, {top: 0, height: height - vidHeight - 94 }]}
           dataSource={this.state.dataSource}
           renderRow={(rowData, sectionID, rowID) => <AlbumRow key={rowID} data={rowData} chooseAlbum={(albums) => this._chooseAlbum(albums)} />} 
-          enableEmptySections={true}  />
+          enableEmptySections={true}
+          onEndReached={() => this._onEndReached()}
+          onEndReachedThreshold={2000} />
       </View>
     )
   }
 
-  componentWillReceiveProps(nextProps) {
-    // if(nextProps.userAquired){
-    //   //this._getUsersPlaylists()
-    // }
-  }
   componentDidMount() {
 
+    // IMPORTANT: HIDE IN RELEASE
+    //AsyncStorage.removeItem('@GmixrStore:tracks')
 
     this.props.events.addListener('userAquired', this._getUsersAlbums, this)
 

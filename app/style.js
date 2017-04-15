@@ -97,6 +97,13 @@ module.exports = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor:'rgba(0,0,0,0.2)'
   },
+  searchInput: {
+    padding:4,
+    color:'white',
+    height: 40, 
+    overflow: 'hidden',
+    backgroundColor:'rgba(0,0,0,0.2)'    
+  },
   controls: {
     flex: 1,
     flexDirection:'row',

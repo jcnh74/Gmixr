@@ -8,6 +8,7 @@
 import React, { Component } from 'react'
 import update from 'immutability-helper'
 import {
+  StatusBar,
   AsyncStorage,
   Image,
   NativeModules,
@@ -80,16 +81,6 @@ var CustomLayoutSpring = {
       springDamping: 0.8,
     },
   }
-// var CustomLayoutLinear = {
-//     duration: 200,
-//     create: {
-//       type: LayoutAnimation.Types.linear,
-//       property: LayoutAnimation.Properties.opacity,
-//     },
-//     update: {
-//       type: LayoutAnimation.Types.curveEaseInEaseOut,
-//     },
-//   }
 
 
 // Player View
@@ -103,8 +94,6 @@ export default class PlayerView extends Component {
     // Actions
     this._orientationDidChange = this._orientationDidChange.bind(this)
     this._launchSelector = this._launchSelector.bind(this)
-    this._choosePlaylist = this._choosePlaylist.bind(this)
-    this._chooseTrack = this._chooseTrack.bind(this)
 
     this.eventEmitter = new EventEmitter()
 
@@ -210,23 +199,18 @@ export default class PlayerView extends Component {
       BackgroundTimer.clearInterval(this.intervalId)
 
     }
-
   }
 
   _startTimers(){
 
-
     this._clearTimers()
 
-    //console.log(this.state.bpm)
     if(this.state.bpm){
 
       this.intervalId = BackgroundTimer.setInterval(() => {
         this._updateGif(this.state.localImages)
       }, this.state.bpm)
     }
-
-
   }
 
 
@@ -249,48 +233,42 @@ export default class PlayerView extends Component {
   // Can be done: https://github.com/wkh237/react-native-fetch-blob#user-content-cancel-request
   _getData(imagearr){
 
-    // if(typeof(imagearr) !== 'undefined' && imagearr.length){
+    this.setState({
+      localImages: []
+    })
+    var j = 1
 
-      this.setState({
-        localImages: []
-      })
-      var j = 1
+    var local = []
+    for(i = 0; i < imagearr.length; i++){
 
-      var local = []
-      for(i = 0; i < imagearr.length; i++){
+      this.state.tasks[i] = RNFetchBlob.config({
+        fileCache : true,
+        appendExt : 'gif'
+      }).fetch('GET', imagearr[i])
 
-        this.state.tasks[i] = RNFetchBlob.config({
-          fileCache : true,
-          appendExt : 'gif'
-        }).fetch('GET', imagearr[i])
+      this.state.tasks[i].then((result) => {
 
-        this.state.tasks[i].then((result) => {
-
-          var percent = Math.round((j/imagearr.length)*100)
+        var percent = Math.round((j/imagearr.length)*100)
 
 
-          this.setState({
-            localImages: this.state.localImages.concat(result.path()),
-            amountLoaded: percent
-          })
-
-          if(j == imagearr.length){
-
-            this._play()
-
-          }
-          j++
-        }).catch((err) => {
-          // console.log('_getData')
-          // console.log(err)
+        this.setState({
+          localImages: this.state.localImages.concat(result.path()),
+          amountLoaded: percent
         })
-      }
-    // }
+
+        if(j == imagearr.length){
+
+          this._play()
+
+        }
+        j++
+      }).catch((err) => {
+         console.log(err)
+      })
+    }
   }
 
   _cancelGetData(){
-    // console.log('_cancelGetData')
-    // console.log(imagearr)
 
     var imagearr = this.state.tasks
 
@@ -302,13 +280,10 @@ export default class PlayerView extends Component {
 
       for(i = 0; i < imagearr.length; i++){
         this.state.tasks[i].cancel((err) => {
-          // console.log('_cancelGetData')
-          // console.log(err)
+          console.log(err)
         })
       }
     }
-
-
   }
 
 
@@ -360,7 +335,6 @@ export default class PlayerView extends Component {
         })
       }
     })
-
   }
 
   // Start the timer, set the playlist and update some states
@@ -389,71 +363,6 @@ export default class PlayerView extends Component {
     })
   }
 
-  // Search Spotify for Stuff
-  // TODO: Not currently being user.
-  _searchMusic(terms,context){
-    SpotifyAuth.performSearchWithQuery(terms,context,0,'US',(err, result)=>{
-      var tracks = []
-      var tracksURIs = []
-      if(result){
-
-        result.map( (item) => {
-          tracks.push(item)
-        })
-
-        tracks.sort(() => {
-          return .5 - Math.random()
-        })
-
-        tracks.map( (item) => {
-          tracksURIs.push(item.uri)
-        })
-
-        this.setState({
-          tracks: tracks
-        })
-      
-        SpotifyAuth.playURIs(tracksURIs, {trackIndex :0, startTime:0},(error)=>{
-          this.setState({
-            isPlaying: true
-          })
-
-          this._stop()
-          
-          SpotifyAuth.currentTrackURI((result)=>{
-
-        
-            var track = tracks.filter((item) => {
-              return item.uri == result
-            })
-
-            SpotifyAuth.currentTrackDuration((result)=>{
-              this.setState({
-                currentTrack: {
-                  duration: result
-                }
-              })
-            })
-
-            AsyncStorage.getItem('@GmixrStore:token', (err, result) => {
-              this._getAudioFeatures(track[0].id, result)
-              this._getGifs([track[0].artists[0].name, track[0].name])
-            })
-
-            this.setState({
-              currentTrack: {
-                name: track[0].name,
-                artistName: track[0].artists[0].name,
-                albumName: track[0].album.name,
-
-              }
-            })
-              
-          })
-        })
-      }
-    })
-  }
 
   // Update state of current track, clear Gifs and request new ones.
   _setTrack(currentURI){
@@ -545,8 +454,6 @@ export default class PlayerView extends Component {
       })
 
     })
-
-   
   }
 
   // Get from Spotify audio features of Track
@@ -609,12 +516,6 @@ export default class PlayerView extends Component {
       });
       this.setState(newState);
 
-      // this.setState({
-      //   currentTrack: {
-      //     analysis: responseJson
-      //   }
-      // })
-
       this._getSavedTrack(trackID, token)
     })
     .catch((err) => {
@@ -642,11 +543,6 @@ export default class PlayerView extends Component {
       });
       this.setState(newState);
 
-      // this.setState({
-      //   currentTrack: {
-      //     saved: responseJson[0]
-      //   }
-      // })
     })
     .catch((err) => {
       console.error(err)
@@ -679,7 +575,6 @@ export default class PlayerView extends Component {
       this._play()
 
     });
-
   }
 
 
@@ -768,21 +663,16 @@ export default class PlayerView extends Component {
   _newGifRequest(terms){
 
     gifTerms = terms.split(',');
-    //console.log(gifTerms)
 
     this._cancelGetData()
     this._clearGifs()
-    //console.log(terms)
     this._setAsyncTrackTerms(this.state.currentTrack.trackID, gifTerms)
     this._getGifs(gifTerms)
   }
 
-  // A selected Playlist From the Playlist ListView
-  // TODO: need to add more functionality to choosing music from Spotify
   _choosePlaylist(playlist){
 
     this._cancelGetData()
-
 
     this.setState({
       showListView: false,
@@ -799,8 +689,6 @@ export default class PlayerView extends Component {
 
       this._getMusic()
     })
-      
-    //}
   }
 
   _chooseTrack(track){
@@ -822,12 +710,11 @@ export default class PlayerView extends Component {
 
       this._getMusic()
     })
-
   }
 
   _chooseArtist(artist){
 
-   this._cancelGetData()
+    this._cancelGetData()
 
     this.setState({
       showListView: false,
@@ -844,12 +731,11 @@ export default class PlayerView extends Component {
 
       this._getMusic()
     })
-
   }
 
   _chooseAlbum(album){
 
-   this._cancelGetData()
+    this._cancelGetData()
 
     this.setState({
       showListView: false,
@@ -866,7 +752,6 @@ export default class PlayerView extends Component {
 
       this._getMusic()
     })
-
   }
 
     // If from IOS orientation was updated
@@ -952,11 +837,9 @@ export default class PlayerView extends Component {
       textTerms += this.state.currentGiphyTerms[i] + ' '
     }
 
-    //console.log(this.state.currentTrack)
-
-
     return (
       <View style={styles.container}>
+      <StatusBar hidden={true} />
         <View style={styles.flex}>
           <MediaView 
             layoutProps={this.state.layoutProps}
@@ -979,7 +862,7 @@ export default class PlayerView extends Component {
                         userAquired={this.state.userAquired}
                         currentUser={this.state.currentUser}
                         layoutProps={this.state.layoutProps}
-                        _choosePlaylist={(playlist) => this._choosePlaylist(playlist)}
+                        choosePlaylist={(playlist) => this._choosePlaylist(playlist)}
                         events={this.eventEmitter} />
                     )
                   case 'songs':
@@ -989,7 +872,7 @@ export default class PlayerView extends Component {
                         userAquired={this.state.userAquired}
                         currentUser={this.state.currentUser}
                         layoutProps={this.state.layoutProps}
-                        _chooseTrack={(track) => this._chooseTrack(track)}
+                        chooseTrack={(track) => this._chooseTrack(track)}
                         events={this.eventEmitter} />
                     )
                   case 'search':
@@ -999,6 +882,9 @@ export default class PlayerView extends Component {
                         userAquired={this.state.userAquired}
                         currentUser={this.state.currentUser}
                         layoutProps={this.state.layoutProps}
+                        chooseTrack={(track) => this._chooseTrack(track)}
+                        chooseArtist={(artist) => this._chooseArtist(artist)}
+                        chooseAlbum={(album) => this._chooseAlbum(album)}
                         choosePlaylist={(playlist) => this._choosePlaylist(playlist)}
                         events={this.eventEmitter} />
                     )
@@ -1092,45 +978,24 @@ export default class PlayerView extends Component {
           </TouchableHighlight>
         </View>
       </View>
-      
-      )
-
-    // <TouchableHighlight style={styles.row} onPress={this._launchSelector} activeOpacity={1} underlayColor="transparent">
-    //         <View style={styles.flexRow}>
-    //           <Image style={styles.playlistThumbnail} source={{ uri: this.state.currentPlaylist.image}} />
-    //           <View>
-    //             <Text style={[styles.listTitleText, {width: listTextWidth }]} numberOfLines={1}>
-    //               {this.state.currentPlaylist.name}
-    //             </Text>
-    //             <Text style={[styles.listDescText, {width: listTextWidth }]} numberOfLines={1}>
-    //               {playlistInfo}
-    //             </Text>
-    //           </View>
-    //           <IOIcon name="ios-search-outline" backgroundColor="transparent" color="white" size={20} />
-    //         </View>
-    //       </TouchableHighlight>
-
+    )
   }
 
   componentWillUpdate() {
+
     //LayoutAnimation.easeInEaseOut()
     LayoutAnimation.configureNext(CustomLayoutSpring)
-    //LayoutAnimation.configureNext(CustomLayoutLinear)
 
   }
 
   componentWillMount() {
-    // Animate creation
 
+    // Animate creation
     LayoutAnimation.easeInEaseOut()
   }
 
-
   componentDidMount() {
     this._getUser()
-
-    // console.log('componentDidMount')
-    // console.log(this.props)
 
 
     // Add Listeners from IOS
@@ -1139,7 +1004,6 @@ export default class PlayerView extends Component {
     myModuleEvt.addListener('EventReminder', (data) => {
 
       var message = data.object[0]
-      console.log(data)
       if(message.includes("didStartPlayingTrack")){
 
         this._cancelGetData()
@@ -1164,15 +1028,10 @@ export default class PlayerView extends Component {
       }else if(data.object == "didChangePlaybackStatus"){
 
       }else if(data.object == "audioStreamingDidLogin"){
-        console.log("audioStreamingDidLogin")
+
         this.eventEmitter.emit('userAquired')
       }
     })
-  }
-
-  componentWillReceiveProps(nextProps) {
-    // console.log('componentWillReceiveProps')
-    // console.log(nextProps)
   }
 
   componentWillUnmount() {

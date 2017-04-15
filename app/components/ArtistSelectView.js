@@ -30,19 +30,23 @@ export default class ArtistSelectView extends Component {
   constructor(props) {
     super(props)
 
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
     this.state = {
-      userPlaylists: [],
-      dataSource: ds.cloneWithRows([]),
+      userArtists: [],
+      dataSource: new ListView.DataSource({
+        rowHasChanged: (row1, row2) => row1 !== row2
+      }),
+      artistData: [],
+      page: 0,
+      total: 0
     }
   }
 
-  _processPlaylists(playlists){
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+  _processArtists(artists){
 
-    var mydata = []
-    for(i = 0; i < playlists.length; i++){
-      var imgArr = playlists[i].images
+    var mydata = this.state.artistData
+
+    for(i = 0; i < artists.length; i++){
+      var imgArr = artists[i].images
       var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
 
       if(typeof(imgArr) !== 'undefined' && imgArr.length){
@@ -50,22 +54,33 @@ export default class ArtistSelectView extends Component {
           playlistImage = imgArr[imgArr.length - 1].url
         }
       }
-      //console.log(playlists)
-      mydata.push({name:playlists[i].name, uri:playlists[i].uri, image:playlistImage, genres:playlists[i].genres, popularity: playlists[i].popularity})
+
+      //console.log(artists)
+      mydata.push({name:artists[i].name, uri:artists[i].uri, id: artists[i].id, image:playlistImage, genres:artists[i].genres, popularity: artists[i].popularity})
     }
 
+    var page = this.state.page
+
     this.setState({
-      userPlaylists: playlists,
-      dataSource: ds.cloneWithRows(mydata),
+      albumsData: mydata,
+      dataSource: this.state.dataSource.cloneWithRows(mydata),
+      page: page + 1
     })
+ 
 
   }
 
   // Get all the users Playlists
-  _fetchPlaylists(bearer){
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+  _fetchArtists(bearer){
 
-    fetch('https://api.spotify.com/v1/me/following?type=artist&limit=50', {
+    var offset = this.state.page * 50
+    var userArtists = this.state.userArtists
+    var after = ''
+    if(this.state.page > 0){
+      after = '&after='+userArtists[userArtists.length-1].id
+    }
+
+    fetch('https://api.spotify.com/v1/me/following?type=artist&limit=50'+after, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -75,15 +90,22 @@ export default class ArtistSelectView extends Component {
     .then((response) => response.json())
     .then((responseJson) => {
 
-      console.log(responseJson.artists.items)
+
+      var artists = responseJson.artists.items
+      var merge = userArtists.concat(artists)
 
       if(responseJson.error){
         return
       }
-      var playlists = responseJson.artists.items
-      AsyncStorage.setItem( '@GmixrStore:artist', JSON.stringify(playlists) )
 
-      this._processPlaylists(playlists)
+      this.setState({
+        userArtists: merge,
+        total: responseJson.artists.total
+      })
+
+      AsyncStorage.setItem( '@GmixrStore:artist', JSON.stringify(merge) )
+
+      this._processArtists(merge)
       
     })
     .catch((err) => {
@@ -93,21 +115,21 @@ export default class ArtistSelectView extends Component {
 
   // If we can, respond to fetch function
   // TODO: May be able to bypass this function
-  _getUsersPlaylists(){
+  _getUsersArtists(){
 
     AsyncStorage.getItem('@GmixrStore:artist', (err, res) => {
       if(res){
-        this._processPlaylists(JSON.parse(res))
+        this._processArtists(JSON.parse(res))
       }else{
         SpotifyAuth.getToken((result)=>{
 
           if(result){
 
-            this._fetchPlaylists(result)
+            this._fetchArtists(result)
 
           }else{
             AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-              this._fetchPlaylists(res)
+              this._fetchArtists(res)
             })
 
           }
@@ -122,6 +144,26 @@ export default class ArtistSelectView extends Component {
     this.props.chooseArtist(playlist)
   }
 
+  _onEndReached(){
+
+    var downloaded = this.state.page*50
+
+    if(this.state.total >= downloaded){
+
+      SpotifyAuth.getToken((result)=>{
+
+        if(result){
+
+          this._fetchArtists(result)
+
+        }else{
+          AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
+            this._fetchArtists(res)
+          })
+        }
+      })
+    }
+  }
 
   render() {
 
@@ -130,29 +172,26 @@ export default class ArtistSelectView extends Component {
     return (
       <View>
     		<ListView
+          ref="listview"
           style={[styles.listView, {top: 0, height: height - vidHeight - 94 }]}
           dataSource={this.state.dataSource}
           renderRow={(rowData, sectionID, rowID) => <ArtistRow key={rowID} data={rowData} chooseArtist={(playlist) => this._chooseArtist(playlist)} />} 
-          enableEmptySections={true}  />
+          enableEmptySections={true}
+          onEndReached={() => this._onEndReached()}
+          onEndReachedThreshold={2000} />
       </View>
     )
   }
 
-  componentWillReceiveProps(nextProps) {
-    // if(nextProps.userAquired){
-    //   //this._getUsersPlaylists()
-    // }
-  }
   componentDidMount() {
-    //console.log(this.state.userPlaylists)
 
+    // IMPORTANT: HIDE IN RELEASE
+    //AsyncStorage.removeItem('@GmixrStore:artist')
 
-    this.props.events.addListener('userAquired', this._getUsersPlaylists, this)
+    this.props.events.addListener('userAquired', this._getUsersArtists, this)
 
     if(this.props.userAquired){
-      this._getUsersPlaylists()
+      this._getUsersArtists()
     }
-    
   }
-
 }

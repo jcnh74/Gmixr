@@ -450,6 +450,21 @@ export default class ControlView extends Component {
             //   )}
             // </TouchableHighlight> 
 
+    // <TouchableHighlight style={styles.row} onPress={this._launchSelector} activeOpacity={1} underlayColor="transparent">
+    //         <View style={styles.flexRow}>
+    //           <Image style={styles.playlistThumbnail} source={{ uri: this.state.currentPlaylist.image}} />
+    //           <View>
+    //             <Text style={[styles.listTitleText, {width: listTextWidth }]} numberOfLines={1}>
+    //               {this.state.currentPlaylist.name}
+    //             </Text>
+    //             <Text style={[styles.listDescText, {width: listTextWidth }]} numberOfLines={1}>
+    //               {playlistInfo}
+    //             </Text>
+    //           </View>
+    //           <IOIcon name="ios-search-outline" backgroundColor="transparent" color="white" size={20} />
+    //         </View>
+    //       </TouchableHighlight>
+
   }
   componentDidMount() {
 

@@ -30,24 +30,22 @@ export default class PlaylistSelectView extends Component {
   constructor(props) {
     super(props)
 
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+    //const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
     this.state = {
       userPlaylists: [],
-      dataSource: ds.cloneWithRows([]),
-      currentPlaylist: {
-        name: '',
-        owner: '',
-        total: '',
-        image: '',
-        playlist: [],
-      }
+      dataSource: new ListView.DataSource({
+        rowHasChanged: (row1, row2) => row1 !== row2
+      }),
+      playlistData: [],
+      page: 0,
+      total: 0
     }
   }
 
   _processPlaylists(playlists){
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
-    var mydata = []
+    var mydata = this.state.playlistData
     for(i = 0; i < playlists.length; i++){
       var imgArr = playlists[i].images
       var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
@@ -61,9 +59,12 @@ export default class PlaylistSelectView extends Component {
       mydata.push({name:playlists[i].name, uri:playlists[i].uri, image:playlistImage, total:playlists[i].tracks.total, owner: playlists[i].owner.id})
     }
 
+    var page = this.state.page
+
     this.setState({
-      userPlaylists: playlists,
-      dataSource: ds.cloneWithRows(mydata),
+      dataSource: this.state.dataSource.cloneWithRows(mydata),
+      playlistData: mydata,
+      page: page + 1
     })
 
     var imgArr = playlists[0].images
@@ -75,23 +76,16 @@ export default class PlaylistSelectView extends Component {
       playlistImage = this.props.currentUser.images[0].url
     }
 
-    this.setState({
-      currentPlaylist: {
-        name: playlists[0].name,
-        owner: playlists[0].owner.id,
-        total: playlists[0].tracks.total,
-        image: playlistImage,
-        playlist: playlists[0]
-      }
-    })
-
   }
 
   // Get all the users Playlists
   _fetchPlaylists(bearer){
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
-    fetch('https://api.spotify.com/v1/users/'+this.props.currentUser.id+'/playlists?limit=50', {
+    var offset = this.state.page * 50
+
+    var userPlaylists = this.state.userPlaylists
+
+    fetch('https://api.spotify.com/v1/users/'+this.props.currentUser.id+'/playlists?offset='+offset+'&limit=50', {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -105,8 +99,14 @@ export default class PlaylistSelectView extends Component {
       }
 
       var playlists = responseJson.items
-      console.log(playlists)
-      AsyncStorage.setItem( '@GmixrStore:playlists', JSON.stringify(playlists) )
+      var merge = userPlaylists.concat(playlists)
+
+      this.setState({
+        total: responseJson.total,
+        userPlaylists: merge
+      })
+
+      AsyncStorage.setItem( '@GmixrStore:playlists', JSON.stringify(merge) )
 
       this._processPlaylists(playlists)
       
@@ -121,7 +121,6 @@ export default class PlaylistSelectView extends Component {
   _getUsersPlaylists(){
 
     //AsyncStorage.removeItem('@GmixrStore:playlists')
-
     AsyncStorage.getItem('@GmixrStore:playlists', (err, res) => {
       if(res){
         this._processPlaylists(JSON.parse(res))
@@ -142,11 +141,31 @@ export default class PlaylistSelectView extends Component {
 
       }
     })
-
   }
 
   _choosePlaylist(playlist){
-    this.props._choosePlaylist(playlist)
+    this.props.choosePlaylist(playlist)
+  }
+
+  _onEndReached(){
+
+    var downloaded = this.state.page*50
+
+    if(this.state.total >= downloaded){
+
+      SpotifyAuth.getToken((result)=>{
+
+        if(result){
+
+          this._fetchPlaylists(result)
+
+        }else{
+          AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
+            this._fetchPlaylists(res)
+          })
+        }
+      })
+    }
   }
 
 
@@ -157,22 +176,21 @@ export default class PlaylistSelectView extends Component {
     return (
       <View>
     		<ListView
+          ref="listview"
           style={[styles.listView, {top: 0, height: height - vidHeight - 94 }]}
           dataSource={this.state.dataSource}
           renderRow={(rowData, sectionID, rowID) => <PlaylistRow key={rowID} data={rowData} choosePlaylist={(playlist) => this._choosePlaylist(playlist)} />} 
-          enableEmptySections={true}  />
+          enableEmptySections={true}
+          onEndReached={() => this._onEndReached()}
+          onEndReachedThreshold={2000} />
       </View>
     )
   }
 
-  componentWillReceiveProps(nextProps) {
-    // if(nextProps.userAquired){
-    //   //this._getUsersPlaylists()
-    // }
-  }
   componentDidMount() {
-    console.log('PlaylistSelectView componentDidMount')
 
+    // IMPORTANT: HIDE IN RELEASE
+    //AsyncStorage.removeItem('@GmixrStore:playlists')
 
     this.props.events.addListener('userAquired', this._getUsersPlaylists, this)
 

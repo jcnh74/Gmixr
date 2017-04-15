@@ -2,6 +2,7 @@
 import React, { Component } from 'react'
 import { Actions } from 'react-native-router-flux';
 import {
+  StatusBar,
   AsyncStorage,
   Image,
   NativeModules,
@@ -75,6 +76,7 @@ export default class LogInView extends Component {
 
     return (
       <View style={styles.container}>
+        <StatusBar barStyle="light-content" />
         {(this.state.loggedIn) ? (
           <Image 
               source={defaultImage}

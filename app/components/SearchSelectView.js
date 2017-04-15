@@ -12,11 +12,16 @@ import {
   NativeModules,
   ListView,
   View,
+  TextInput,
   Dimensions
 } from 'react-native'
 
 // Components
+import TrackRow from './TrackRow'
+import ArtistRow from './ArtistRow'
+import AlbumRow from './AlbumRow'
 import PlaylistRow from './PlaylistRow'
+import TitleRow from './TitleRow'
 
 // Native Modules
 const SpotifyAuth = NativeModules.SpotifyAuth
@@ -30,24 +35,66 @@ export default class SearchSelectView extends Component {
   constructor(props) {
     super(props)
 
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
     this.state = {
-      userPlaylists: [],
-      dataSource: ds.cloneWithRows([]),
-      currentPlaylist: {
-        name: '',
-        owner: '',
-        total: '',
-        image: '',
-        playlist: [],
-      }
+      userSearchResult: [],
+      searchData: [],
+      dataSource: new ListView.DataSource({
+        rowHasChanged: (row1, row2) => row1 !== row2
+      }),
+      textTerms: '',
+      inputActive: false
     }
   }
 
-  _processPlaylists(playlists){
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+  _processItems(items){
 
-    var mydata = []
+    var searchData = this.state.searchData
+
+
+    var albums = items.albums.items
+    var artists = items.artists.items
+    var playlists = items.playlists.items
+    var tracks = items.tracks.items
+
+
+    //Tracks
+    searchData.push({name:'Songs', type:'title'})
+    for(i = 0; i < tracks.length; i++){
+      searchData.push({name:tracks[i].name, uri:tracks[i].uri, artist:tracks[i].artists[0].name, album:tracks[i].album.name, type:'track'})
+    }
+
+    // Artists
+    searchData.push({name:'Artists', type:'title'})
+    for(i = 0; i < artists.length; i++){
+      var imgArr = artists[i].images
+      var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
+
+      if(typeof(imgArr) !== 'undefined' && imgArr.length){
+        if(imgArr[imgArr.length - 1].url){
+          playlistImage = imgArr[imgArr.length - 1].url
+        }
+      }
+
+      searchData.push({name:artists[i].name, uri:artists[i].uri, id: artists[i].id, image:playlistImage, genres:artists[i].genres, popularity: artists[i].popularity, type:'artist'})
+    }
+
+    // Album
+    searchData.push({name:'Albums', type:'title'})
+    for(i = 0; i < albums.length; i++){
+
+      var imgArr = albums[i].images
+      var albumImage = 'https://facebook.github.io/react/img/logo_og.png'
+
+      if(typeof(imgArr) !== 'undefined' && imgArr.length){
+        if(imgArr[imgArr.length - 1].url){
+          albumImage = imgArr[imgArr.length - 1].url
+        }
+      }
+      searchData.push({name:albums[i].name, uri:albums[i].uri, image:albumImage, artist: albums[i].artists[0].name, type:'album'})     
+    }
+
+    // Playlist
+    searchData.push({name:'Playlists', type:'title'})
     for(i = 0; i < playlists.length; i++){
       var imgArr = playlists[i].images
       var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
@@ -57,41 +104,24 @@ export default class SearchSelectView extends Component {
           playlistImage = imgArr[0].url
         }
       }
-      //console.log(playlists)
-      mydata.push({name:playlists[i].name, uri:playlists[i].uri, image:playlistImage, total:playlists[i].tracks.total, owner: playlists[i].owner.id})
+      searchData.push({name:playlists[i].name, uri:playlists[i].uri, image:playlistImage, total:playlists[i].tracks.total, owner: playlists[i].owner.id, type:'playlist'})
     }
 
-    this.setState({
-      userPlaylists: playlists,
-      dataSource: ds.cloneWithRows(mydata),
-    })
-
-    var imgArr = playlists[0].images
-    var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
-
-    if(imgArr.length){
-      playlistImage = imgArr[0].url
-    }else if(typeof(this.props.currentUser.images) !== 'undefined' && this.props.currentUser.images.length){
-      playlistImage = this.props.currentUser.images[0].url
-    }
 
     this.setState({
-      currentPlaylist: {
-        name: playlists[0].name,
-        owner: playlists[0].owner.id,
-        total: playlists[0].tracks.total,
-        image: playlistImage,
-        playlist: playlists[0]
-      }
+      searchData: searchData,
+      dataSource: this.state.dataSource.cloneWithRows(searchData),
     })
 
   }
 
   // Get all the users Playlists
-  _fetchPlaylists(bearer){
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+  _fetchItems(bearer){
 
-    fetch('https://api.spotify.com/v1/users/'+this.props.currentUser.id+'/playlists?limit=50', {
+    var textTerms = this.state.textTerms
+    var term = encodeURIComponent(textTerms)
+
+    fetch('https://api.spotify.com/v1/search?q='+term+'&type=album,artist,track,playlist&limit=4&offset=0', {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -103,10 +133,15 @@ export default class SearchSelectView extends Component {
       if(responseJson.error){
         return
       }
-      var playlists = responseJson.items
-      AsyncStorage.setItem( '@GmixrStore:playlists', JSON.stringify(playlists) )
 
-      this._processPlaylists(playlists)
+      this.setState({
+        userSearchResult: responseJson,
+      })
+
+      AsyncStorage.setItem( '@GmixrStore:userSearchResult', JSON.stringify(responseJson) )
+      AsyncStorage.setItem( '@GmixrStore:userSearchTerm', textTerms )
+
+      this._processItems(responseJson)
       
     })
     .catch((err) => {
@@ -116,29 +151,91 @@ export default class SearchSelectView extends Component {
 
   // If we can, respond to fetch function
   // TODO: May be able to bypass this function
-  _getUsersPlaylists(){
+  _getLastSearched(){
 
-    AsyncStorage.getItem('@GmixrStore:playlists', (err, res) => {
+    AsyncStorage.getItem('@GmixrStore:userSearchResult', (err, res) => {
       if(res){
-        this._processPlaylists(JSON.parse(res))
+        this._processItems(JSON.parse(res))
       }else{
         SpotifyAuth.getToken((result)=>{
 
           if(result){
 
-            this._fetchPlaylists(result)
+            this._fetchItems(result)
 
           }else{
             AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-              this._fetchPlaylists(res)
+              this._fetchItems(res)
             })
 
           }
         })
 
       }
+      AsyncStorage.getItem('@GmixrStore:userSearchTerm', (err, res) => {
+        if(res){
+          this._setState(res)
+        }
+      })
     })
 
+  }
+
+  _choosePlaylist(playlist){
+    this.props.choosePlaylist(playlist)
+  }
+
+  _setInput(active){
+
+    this.setState({
+      inputActive: active
+    })
+
+  }
+
+  _setState(term){
+    this.setState({
+      textTerms: term
+    })
+  }
+
+  _newSpotifyRequest(terms){
+
+    this.setState({
+      textTerms: terms,
+      dataSource: new ListView.DataSource({
+        rowHasChanged: (row1, row2) => row1 !== row2
+      }),
+      searchData: []
+    }, function(){
+
+      SpotifyAuth.getToken((result)=>{
+
+        if(result){
+
+          this._fetchItems(result)
+
+        }else{
+          AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
+            this._fetchItems(res)
+          })
+        }
+      })
+
+    })
+
+  }
+
+  _chooseTrack(track){
+    this.props.chooseTrack(track)
+  }
+
+  _chooseArtist(playlist){
+    this.props.chooseArtist(playlist)
+  }
+
+  _chooseAlbum(albums){
+    this.props.chooseAlbum(albums)
   }
 
   _choosePlaylist(playlist){
@@ -151,31 +248,68 @@ export default class SearchSelectView extends Component {
     var vidHeight = (this.props.layoutProps.orientation == 'landscape') ? this.props.layoutProps.height : this.props.layoutProps.width*3/4
 
     return (
-      <View>
+      <View style={{flexDirection: 'column'}}>
+        <TextInput
+          ref='Search'
+          spellCheck={false}
+          style={[styles.searchInput, {flex:-1}]}
+          onFocus={() => this._setInput(true)}
+          onBlur={() => this._setInput(false)}
+          blurOnSubmit={true}
+          keyboardType={'ascii-capable'}
+          onChangeText={(text) => this._setState({textTerms: text})}
+          onSubmitEditing={(event) => this._newSpotifyRequest(event.nativeEvent.text)}
+          value={this.state.textTerms}
+          removeClippedSubviews={true}
+        />
     		<ListView
-          style={[styles.listView, {top: 0, height: height - vidHeight - 94 }]}
+          style={[styles.listView, {top: 40, height: height - vidHeight - 94 - 40 }]}
           dataSource={this.state.dataSource}
-          renderRow={(rowData, sectionID, rowID) => <PlaylistRow key={rowID} data={rowData} choosePlaylist={(playlist) => this._choosePlaylist(playlist)} />} 
+          renderRow={(rowData, sectionID, rowID) => {
+            switch (rowData.type) {
+              case 'playlist':
+                return (
+                  <PlaylistRow key={rowID} data={rowData} choosePlaylist={(playlist) => this._choosePlaylist(playlist)} />
+                )
+              case 'track':
+                return (
+                  <TrackRow key={rowID} data={rowData} chooseTrack={(track) => this._chooseTrack(track)} />
+                )
+              case 'album':
+                return (
+                  <AlbumRow key={rowID} data={rowData} chooseAlbum={(albums) => this._chooseAlbum(albums)} />
+                )
+              case 'artist':
+                return (
+                  <ArtistRow key={rowID} data={rowData} chooseArtist={(playlist) => this._chooseArtist(playlist)} />
+                )
+              case 'title':
+                return (
+                  <TitleRow key={rowID} data={rowData} />
+                )
+              default :
+                null
+            }
+          }}
           enableEmptySections={true}  />
       </View>
     )
   }
 
-  componentWillReceiveProps(nextProps) {
-    // if(nextProps.userAquired){
-    //   //this._getUsersPlaylists()
-    // }
-  }
+
   componentDidMount() {
-    //console.log(this.state.userPlaylists)
 
+    // IMPORTANT: HIDE IN RELEASE
+    //AsyncStorage.removeItem('@GmixrStore:userSearchResult')
 
-    // this.props.events.addListener('userAquired', this._getUsersPlaylists, this)
+    this.props.events.addListener('userAquired', this._getLastSearched, this)
 
-    // if(this.props.userAquired){
-    //   this._getUsersPlaylists()
-    // }
-    
+    if(this.props.userAquired){
+      this._getLastSearched()
+    }
+
+    this.refs.Search.focus()
+
   }
 
 }
