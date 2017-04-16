@@ -22,6 +22,7 @@
     "react-native-itunes": "^0.4.3",
     "react-native-orientation": "^1.17.0",
     "react-native-router-flux": "^3.38.0",
+    "react-native-share": "^1.0.20",
     "react-native-spotify": "^1.0.1",
     "react-native-vector-icons": "^4.0.0"
   },

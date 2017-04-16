@@ -3,6 +3,7 @@ package com.gmixrreact;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import cl.json.RNSharePackage;
 import com.reactnative.ivpusic.imagepicker.PickerPackage;
 import com.mg.app.PickerPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
@@ -32,6 +33,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new RNSharePackage(),
             new PickerPackage(),
             new PickerPackage(),
             new VectorIconsPackage(),

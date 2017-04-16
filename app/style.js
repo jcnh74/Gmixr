@@ -107,6 +107,7 @@ module.exports = StyleSheet.create({
   controls: {
     flex: 1,
     flexDirection:'row',
+    justifyContent: 'center',
     paddingTop:40,
     paddingBottom:40,
   },
@@ -285,8 +286,7 @@ module.exports = StyleSheet.create({
     width:36, 
     height: 36, 
     borderRadius: 18,
-    marginLeft: 10,
-    marginRight: 0,
+    marginRight: 20,
   },
   row: {
     flex: 1,

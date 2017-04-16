@@ -245,7 +245,6 @@ export default class SearchSelectView extends Component {
 
   render() {
 
-    var vidHeight = (this.props.layoutProps.orientation == 'landscape') ? this.props.layoutProps.height : this.props.layoutProps.width*3/4
 
     return (
       <View style={{flexDirection: 'column'}}>
@@ -263,7 +262,7 @@ export default class SearchSelectView extends Component {
           removeClippedSubviews={true}
         />
     		<ListView
-          style={[styles.listView, {top: 40, height: height - vidHeight - 94 - 40 }]}
+          style={[styles.listView, {top: 40, height: height - this.props.vidHeight - 94 - 40 }]}
           dataSource={this.state.dataSource}
           renderRow={(rowData, sectionID, rowID) => {
             switch (rowData.type) {

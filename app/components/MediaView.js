@@ -25,19 +25,17 @@ export default class MediaView extends Component {
 
   render() {
 
-    var vidHeight = (this.props.layoutProps.orientation == 'landscape') ? this.props.layoutProps.height : this.props.layoutProps.width*3/4
-
     return (
-		<View style={styles.video}>
+		<View style={[styles.video, {height: this.props.vidHeight}]}>
 			{(this.props.source != '') ? (
 				<Image 
-				  style={{width: this.props.layoutProps.width, height: vidHeight}}
+				  style={{width: this.props.layoutProps.width, height: this.props.vidHeight}}
 				  source={this.props.source}
 				  resizeMode='contain'
 				/>
 			) : (
 				<View 
-				  style={{width: this.props.layoutProps.width, height: vidHeight}}
+				  style={{width: this.props.layoutProps.width, height: this.props.vidHeight}}
 				/>
 			)}
 

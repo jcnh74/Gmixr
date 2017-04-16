@@ -171,13 +171,11 @@ export default class PlaylistSelectView extends Component {
 
   render() {
 
-    var vidHeight = (this.props.layoutProps.orientation == 'landscape') ? this.props.layoutProps.height : this.props.layoutProps.width*3/4
-
     return (
       <View>
     		<ListView
           ref="listview"
-          style={[styles.listView, {top: 0, height: height - vidHeight - 94 }]}
+          style={[styles.listView, {top: 0, height: height - this.props.vidHeight - 94 }]}
           dataSource={this.state.dataSource}
           renderRow={(rowData, sectionID, rowID) => <PlaylistRow key={rowID} data={rowData} choosePlaylist={(playlist) => this._choosePlaylist(playlist)} />} 
           enableEmptySections={true}

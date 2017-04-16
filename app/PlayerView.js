@@ -819,7 +819,7 @@ export default class PlayerView extends Component {
       loaderOpacity = 0
     }
 
-    var vidHeight = (this.state.layoutProps.orientation == 'landscape') ? this.state.layoutProps.height : this.state.layoutProps.width*3/4
+    var vidHeight = (this.state.layoutProps.orientation == 'landscape') ? this.state.layoutProps.height : this.state.layoutProps.width*(this.state.layoutProps.width/this.state.layoutProps.height)
     var bottomBarbottom = (this.state.layoutProps.orientation == 'landscape') ? -48 : 0
 
     var repeatColor = (this.state.isRepeating) ? '#84bd00' : '#FFF'
@@ -845,7 +845,8 @@ export default class PlayerView extends Component {
             layoutProps={this.state.layoutProps}
             source={(this.state.isPlaying && this.state.currentPlayItemGif != '') ? { uri: this.state.currentPlayItemGif } : defaultImage}
             loaderWidth={loaderWidth}
-            loaderOpacity={loaderOpacity} />
+            loaderOpacity={loaderOpacity}
+            vidHeight={vidHeight} />
           <View style={[styles.controlWrap, {width: this.state.layoutProps.width, position: (this.state.layoutProps.orientation == 'landscape') ? 'absolute' : 'relative', opacity: (this.state.layoutProps.orientation == 'landscape') ? 0 : 1}]}>
             <BlurImage 
               style={styles.backgroundImage}
@@ -863,7 +864,8 @@ export default class PlayerView extends Component {
                         currentUser={this.state.currentUser}
                         layoutProps={this.state.layoutProps}
                         choosePlaylist={(playlist) => this._choosePlaylist(playlist)}
-                        events={this.eventEmitter} />
+                        events={this.eventEmitter}
+                        vidHeight={vidHeight} />
                     )
                   case 'songs':
                     return (
@@ -873,7 +875,8 @@ export default class PlayerView extends Component {
                         currentUser={this.state.currentUser}
                         layoutProps={this.state.layoutProps}
                         chooseTrack={(track) => this._chooseTrack(track)}
-                        events={this.eventEmitter} />
+                        events={this.eventEmitter}
+                        vidHeight={vidHeight} />
                     )
                   case 'search':
                     return (
@@ -886,7 +889,8 @@ export default class PlayerView extends Component {
                         chooseArtist={(artist) => this._chooseArtist(artist)}
                         chooseAlbum={(album) => this._chooseAlbum(album)}
                         choosePlaylist={(playlist) => this._choosePlaylist(playlist)}
-                        events={this.eventEmitter} />
+                        events={this.eventEmitter}
+                        vidHeight={vidHeight} />
                     )
                   case 'albums':
                     return (
@@ -896,7 +900,8 @@ export default class PlayerView extends Component {
                         currentUser={this.state.currentUser}
                         layoutProps={this.state.layoutProps}
                         chooseAlbum={(album) => this._chooseAlbum(album)}
-                        events={this.eventEmitter} />
+                        events={this.eventEmitter}
+                        vidHeight={vidHeight} />
                     )
                   case 'artists':
                     return (
@@ -906,7 +911,8 @@ export default class PlayerView extends Component {
                         currentUser={this.state.currentUser}
                         layoutProps={this.state.layoutProps}
                         chooseArtist={(artist) => this._chooseArtist(artist)}
-                        events={this.eventEmitter} />
+                        events={this.eventEmitter}
+                        vidHeight={vidHeight} />
                     )
                   case 'remove':
                     null
@@ -931,7 +937,9 @@ export default class PlayerView extends Component {
                 _setState={(state) => this._setState(state)}
                 _newGifRequest={(event) => this._newGifRequest(event)}
                 _cancelGetData={this._cancelGetData.bind(this)}
-                events={this.eventEmitter} />
+                avatar={avatar}
+                events={this.eventEmitter}
+                vidHeight={vidHeight} />
              </View>
           </View>
         </View>

@@ -20,9 +20,11 @@ import {
   View,
   TouchableHighlight,
   Slider,
-  Dimensions
+  Dimensions,
+  AlertIOS
 } from 'react-native'
 
+import Share, {ShareSheet, Button} from 'react-native-share'
 import EventEmitter from 'EventEmitter'
 
 import moment from 'moment'
@@ -77,6 +79,7 @@ export default class ControlView extends Component {
       isPlaying: this.props.isPlaying,
       isRepeating: false,
       duration: 0,
+      visible: false,
     }
   }
 
@@ -315,10 +318,27 @@ export default class ControlView extends Component {
     this._startTimers()
   }
 
+  onCancel() {
+    console.log("CANCEL")
+    this.setState({visible:false});
+  }
+  onOpen() {
+    console.log("OPEN")
+    this.setState({visible:true});
+  }
+
 
   render() {
 
     var trackName = (this.props.currentTrack.name) ? this.props.currentTrack.name : ''
+
+    let shareOptions = {
+      title: "React Native",
+      message: "Hola mundo",
+      url: "http://facebook.github.io/react-native/",
+      subject: "Share Link" //  for email 
+    }
+
 
     return (
       <View style={[styles.backgroundView, this.props.styles]}>
@@ -359,7 +379,7 @@ export default class ControlView extends Component {
           <TextInput
               ref='Search'
               spellCheck={false}
-              style={[styles.termInput, {height: (this.state.inputActive) ? 40 : 0, padding:(this.state.inputActive) ? 4 : 0  }]}
+              style={[styles.termInput, {height: (this.state.inputActive) ? 40 : 0, padding:(this.state.inputActive) ? 4 : 0, width: width }]}
               onFocus={() => this._setInput(true)}
               onBlur={() => this._setInput(false)}
               blurOnSubmit={true}
@@ -400,15 +420,17 @@ export default class ControlView extends Component {
               )}
             </TouchableHighlight> 
           </View>
-          <Slider
-            thumbImage={require('../../track_head.png')}
-            maximumTrackTintColor={darkgray}
-            minimumTrackTintColor={blue}
-            style={{width: (width-32)}}
-            value={this.state.percentElapsed}
-            onValueChange={this._seeking}
-            onSlidingComplete={(value) => this._seekTo(value)} 
-          />
+          <View style={{flex:1, alignItems: 'center', justifyContent:'center'}}>
+            <Slider
+              thumbImage={require('../../track_head.png')}
+              maximumTrackTintColor={darkgray}
+              minimumTrackTintColor={blue}
+              style={{width: (width-32)}}
+              value={this.state.percentElapsed}
+              onValueChange={this._seeking}
+              onSlidingComplete={(value) => this._seekTo(value)} 
+            />
+          </View>
           <Text style={styles.monoText}>
             {(this.state.secondsElapsed == 0) ? '' : this.state.secondsElapsed}
           </Text>
@@ -436,6 +458,14 @@ export default class ControlView extends Component {
                    <SLIcon name="loop" backgroundColor="transparent" color="white" size={15} />
                 )}
             </TouchableHighlight> 
+          </View>          
+          <View style={[styles.flexRow, {flex:1, justifyContent: 'space-between'}]}>
+            <TouchableHighlight style={styles.smallerButton} onPress={()=>{Share.open(shareOptions)}} activeOpacity={1} underlayColor="transparent">
+              <IOIcon name="ios-share-outline" backgroundColor="transparent" color="white" size={30} />
+            </TouchableHighlight> 
+            <TouchableHighlight style={styles.smallerButton} onPress={() => this._setView()} activeOpacity={1} underlayColor="transparent">
+              <Image style={styles.avatar} source={{ uri: this.props.avatar}} /> 
+            </TouchableHighlight>
           </View>
         </View>
       )}
