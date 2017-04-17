@@ -114,6 +114,7 @@ export default class AlbumSelectView extends Component {
         total: responseJson.total
       })
 
+      AsyncStorage.setItem( '@GmixrStore:tracksTotal', JSON.stringify(responseJson.total) )
       AsyncStorage.setItem( '@GmixrStore:tracks', JSON.stringify(merge) )
 
 
@@ -135,22 +136,31 @@ export default class AlbumSelectView extends Component {
 
     AsyncStorage.getItem('@GmixrStore:tracks', (err, res) => {
       if(res){
-        this._processAlbums(JSON.parse(res))
-      }else{
-        SpotifyAuth.getToken((result)=>{
-
-          if(result){
-
-            this._fetchAlbums(result)
-
-          }else{
-            AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-              this._fetchAlbums(res)
-            })
-
-          }
+        AsyncStorage.getItem('@GmixrStore:tracksTotal', (error, total) => {
+          this.setState({
+            total: parseInt(total)
+          }, function(){
+            this._processAlbums(JSON.parse(res))
+          })
         })
+      }else{
+        var downloaded = this.state.page*50
 
+        if(this.state.total >= downloaded){
+
+          SpotifyAuth.getToken((result)=>{
+
+            if(result){
+
+              this._fetchAlbums(result)
+
+            }else{
+              AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
+                this._fetchAlbums(res)
+              })
+            }
+          })
+        }
       }
     })
 
@@ -184,6 +194,9 @@ export default class AlbumSelectView extends Component {
 
   render() {
 
+    // AsyncStorage.removeItem('@GmixrStore:tracks')
+    // AsyncStorage.removeItem('@GmixrStore:tracksTotal')
+
     return (
       <View>
     		<ListView
@@ -201,7 +214,8 @@ export default class AlbumSelectView extends Component {
   componentDidMount() {
 
     // IMPORTANT: HIDE IN RELEASE
-    //AsyncStorage.removeItem('@GmixrStore:tracks')
+    // AsyncStorage.removeItem('@GmixrStore:tracks')
+    // AsyncStorage.removeItem('@GmixrStore:tracksTotal')
 
     this.props.events.addListener('userAquired', this._getUsersAlbums, this)
 

@@ -37,7 +37,8 @@ export default class ArtistSelectView extends Component {
       }),
       artistData: [],
       page: 0,
-      total: 0
+      total: 0,
+      next: ''
     }
   }
 
@@ -75,12 +76,14 @@ export default class ArtistSelectView extends Component {
 
     var offset = this.state.page * 50
     var userArtists = this.state.userArtists
-    var after = ''
-    if(this.state.page > 0){
-      after = '&after='+userArtists[userArtists.length-1].id
+    var url = ''
+    if(this.state.page == 0){
+      url = 'https://api.spotify.com/v1/me/following?type=artist&limit=50'
+    }else{
+      url = this.state.next
     }
 
-    fetch('https://api.spotify.com/v1/me/following?type=artist&limit=50'+after, {
+    fetch(url, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -98,14 +101,21 @@ export default class ArtistSelectView extends Component {
         return
       }
 
+      console.log(responseJson)
+
       this.setState({
         userArtists: merge,
-        total: responseJson.artists.total
+        total: responseJson.artists.total,
+        next: responseJson.artists.next
+      }, function(){
+        if(responseJson.artists.next !== null){
+          
+          AsyncStorage.setItem( '@GmixrStore:artistNext', responseJson.artists.next )
+          AsyncStorage.setItem( '@GmixrStore:artist', JSON.stringify(merge) )
+
+          this._processArtists(merge)
+        }
       })
-
-      AsyncStorage.setItem( '@GmixrStore:artist', JSON.stringify(merge) )
-
-      this._processArtists(merge)
       
     })
     .catch((err) => {
@@ -119,22 +129,30 @@ export default class ArtistSelectView extends Component {
 
     AsyncStorage.getItem('@GmixrStore:artist', (err, res) => {
       if(res){
-        this._processArtists(JSON.parse(res))
-      }else{
-        SpotifyAuth.getToken((result)=>{
-
-          if(result){
-
-            this._fetchArtists(result)
-
-          }else{
-            AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-              this._fetchArtists(res)
-            })
-
-          }
+        AsyncStorage.getItem('@GmixrStore:artistNext', (error, next) => {
+          this.setState({
+            next: next
+          }, function(){
+            this._processArtists(JSON.parse(res))
+          })
         })
+      }else{
 
+        if(this.state.next !== null){
+
+          SpotifyAuth.getToken((result)=>{
+
+            if(result){
+
+              this._fetchArtists(result)
+
+            }else{
+              AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
+                this._fetchArtists(res)
+              })
+            }
+          })
+        }
       }
     })
 
@@ -146,9 +164,7 @@ export default class ArtistSelectView extends Component {
 
   _onEndReached(){
 
-    var downloaded = this.state.page*50
-
-    if(this.state.total >= downloaded){
+    if(this.state.next !== null){
 
       SpotifyAuth.getToken((result)=>{
 
@@ -167,6 +183,9 @@ export default class ArtistSelectView extends Component {
 
   render() {
 
+    // AsyncStorage.removeItem('@GmixrStore:artist')
+    // AsyncStorage.removeItem('@GmixrStore:artistNext')
+
     return (
       <View>
     		<ListView
@@ -184,7 +203,8 @@ export default class ArtistSelectView extends Component {
   componentDidMount() {
 
     // IMPORTANT: HIDE IN RELEASE
-    //AsyncStorage.removeItem('@GmixrStore:artist')
+    // AsyncStorage.removeItem('@GmixrStore:artist')
+    // AsyncStorage.removeItem('@GmixrStore:artistNext')
 
     this.props.events.addListener('userAquired', this._getUsersArtists, this)
 

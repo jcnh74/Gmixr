@@ -316,6 +316,7 @@ module.exports = StyleSheet.create({
     color:'#FFF',
     marginTop: 4,
     marginBottom: 0,
+    backgroundColor: 'transparent',
   },
   listDescText: {
     fontSize: 11,

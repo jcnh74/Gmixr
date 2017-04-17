@@ -111,6 +111,10 @@ export default class ControlView extends Component {
     this.props._setState(state)
   }
 
+  _launchSelector(selection){
+    this.props._launchSelector(selection)
+  }
+
   _startTimers(){
     this.playTime = setInterval(this._tick, 1000)
     this.props._startTimers()
@@ -332,11 +336,14 @@ export default class ControlView extends Component {
 
     var trackName = (this.props.currentTrack.name) ? this.props.currentTrack.name : ''
 
+    var jsonTerms = encodeURIComponent(this.props.textTerms)
+    var url = 'gmixr://gmixr.com/?uri='+this.props.currentTrack.uri+'&terms='+jsonTerms
+
     let shareOptions = {
-      title: "React Native",
-      message: "Hola mundo",
-      url: "http://facebook.github.io/react-native/",
-      subject: "Share Link" //  for email 
+      title: 'Shared Gmixr Mixup',
+      message: trackName + ' by ' + this.props.currentTrack.artistName +' using "' + this.props.textTerms +'" on #Gmixr',
+      url: url,
+      subject: this.props.currentUser.display_name + " Shared a Gmixr Mixup" //  for email 
     }
 
 
@@ -463,14 +470,17 @@ export default class ControlView extends Component {
             <TouchableHighlight style={styles.smallerButton} onPress={()=>{Share.open(shareOptions)}} activeOpacity={1} underlayColor="transparent">
               <IOIcon name="ios-share-outline" backgroundColor="transparent" color="white" size={30} />
             </TouchableHighlight> 
-            <TouchableHighlight style={styles.smallerButton} onPress={() => this._setView()} activeOpacity={1} underlayColor="transparent">
-              <Image style={styles.avatar} source={{ uri: this.props.avatar}} /> 
+            <TouchableHighlight style={styles.smallerButton} onPress={() => this._launchSelector('settings')} activeOpacity={1} underlayColor="transparent">
+              <IOIcon name="ios-settings-outline" backgroundColor="transparent" color="white" size={30} />
             </TouchableHighlight>
           </View>
         </View>
       )}
       </View>
     )
+
+//              <Image style={styles.avatar} source={{ uri: this.props.avatar}} /> 
+
 
             // <TouchableHighlight style={styles.smallerButton} onPress={() => this._setSaved((this.state.currentTrack.saved) ? false : true)} activeOpacity={1} underlayColor="transparent">
             //   {(this.state.currentTrack.saved) ? (

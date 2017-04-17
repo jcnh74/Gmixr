@@ -43,9 +43,9 @@ export default class PlaylistSelectView extends Component {
   }
 
   _processPlaylists(playlists){
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
     var mydata = this.state.playlistData
+
     for(i = 0; i < playlists.length; i++){
       var imgArr = playlists[i].images
       var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
@@ -106,6 +106,7 @@ export default class PlaylistSelectView extends Component {
         userPlaylists: merge
       })
 
+      AsyncStorage.setItem( '@GmixrStore:playlistsTotal', JSON.stringify(responseJson.total) )
       AsyncStorage.setItem( '@GmixrStore:playlists', JSON.stringify(merge) )
 
       this._processPlaylists(playlists)
@@ -123,22 +124,31 @@ export default class PlaylistSelectView extends Component {
     //AsyncStorage.removeItem('@GmixrStore:playlists')
     AsyncStorage.getItem('@GmixrStore:playlists', (err, res) => {
       if(res){
-        this._processPlaylists(JSON.parse(res))
-      }else{
-        SpotifyAuth.getToken((result)=>{
-
-          if(result){
-
-            this._fetchPlaylists(result)
-
-          }else{
-            AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-              this._fetchPlaylists(res)
-            })
-
-          }
+        AsyncStorage.getItem('@GmixrStore:playlistsTotal', (error, total) => {
+          this.setState({
+            total: parseInt(total)
+          }, function(){
+            this._processPlaylists(JSON.parse(res))
+          })
         })
+      }else{
+        var downloaded = this.state.page*50
 
+        if(this.state.total >= downloaded){
+
+          SpotifyAuth.getToken((result)=>{
+
+            if(result){
+
+              this._fetchPlaylists(result)
+
+            }else{
+              AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
+                this._fetchPlaylists(res)
+              })
+            }
+          })
+        }
       }
     })
   }
@@ -171,6 +181,9 @@ export default class PlaylistSelectView extends Component {
 
   render() {
 
+    // AsyncStorage.removeItem('@GmixrStore:playlists')
+    // AsyncStorage.removeItem('@GmixrStore:playlistsTotal')
+
     return (
       <View>
     		<ListView
@@ -188,7 +201,8 @@ export default class PlaylistSelectView extends Component {
   componentDidMount() {
 
     // IMPORTANT: HIDE IN RELEASE
-    //AsyncStorage.removeItem('@GmixrStore:playlists')
+    AsyncStorage.removeItem('@GmixrStore:playlists')
+    AsyncStorage.removeItem('@GmixrStore:playlistsTotal')
 
     this.props.events.addListener('userAquired', this._getUsersPlaylists, this)
 
