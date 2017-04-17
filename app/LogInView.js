@@ -6,6 +6,7 @@ import {
   AsyncStorage,
   Image,
   NativeModules,
+  NativeEventEmitter,
   Text,
   TouchableHighlight,
   View,
@@ -33,6 +34,7 @@ const {height, width} = Dimensions.get('window')
 
 // Native Modules
 const SpotifyAuth = NativeModules.SpotifyAuth
+const myModuleEvt = new NativeEventEmitter(NativeModules.EventManager)
 
 
 // Default View on Launch
@@ -49,20 +51,22 @@ export default class LogInView extends Component {
 
   _loginToSpotify(){
 
-    SpotifyAuth.checkSession((error)=>{
-      if(!error){
+    SpotifyAuth.startAuth((accessToken)=>{
+      console.log('startAuth')
+      console.log(accessToken)
+      if(!accessToken){
 
         SpotifyAuth.getToken((token)=>{
           this._setAsyncToken(token)
         })
 
-        Actions.player()
+        //Actions.player()
         //this.props.navigator.replace({component: PlayerView})
 
       } else {
-        this._setAsyncToken(error)
+        this._setAsyncToken(accessToken)
         
-        Actions.player()
+        //Actions.player()
         //this.props.navigator.replace({component: PlayerView})
       }
     })
@@ -70,6 +74,9 @@ export default class LogInView extends Component {
 
   _setAsyncToken(token){
     AsyncStorage.setItem('@GmixrStore:token', token)
+  }
+  _setAsyncLoggedIn(bool){
+    AsyncStorage.setItem('@GmixrStore:loggedIn', bool)
   }
 
   render() {
@@ -92,56 +99,83 @@ export default class LogInView extends Component {
       </View>
     )
   }
+  componentWillMount() {
+    AsyncStorage.getItem('@GmixrStore:firstVisit', (err, res) => {
+      if(res){
+        console.log('firstVisit')
+        AsyncStorage.setItem('@GmixrStore:firstVisit', true)
+      }
+    })
+
+    SpotifyAuth.getStatus((result)=>{
+      console.log('getStatus')
+      console.log(result)
+      if(result == 'NoSession'){
+
+
+        // SpotifyAuth.startAuth((accessToken)=>{
+        //   console.log('getToken')
+        //   console.log(accessToken)
+        //   this._setAsyncToken(accessToken)
+        //   if(!accessToken){
+        //     console.log('nothing')
+        //   }
+        // })
+
+        return
+      }
+      if(result == 'Token expired'){
+        SpotifyAuth.renewToken((token)=>{
+          console.log('renewToken')
+          console.log(token)
+          this._setAsyncToken(token)
+          this.setState({loggedIn:true}, 
+          function(){
+            this.forceUpdate()
+          })
+
+          //Actions.player()
+        })
+      }
+    })
+  }
   componentDidMount() {
+
+    SpotifyAuth.setNotifications()
+
 
     // Clear Storage
     // AsyncStorage.removeItem('@GmixrStore:token')
     // AsyncStorage.removeItem('@GmixrStore:timestamp')
 
-    // Get Token or Renew
 
-    SpotifyAuth.loggedIn((result)=>{
-      if(result){
-        SpotifyAuth.getToken((token)=>{
-          this._setAsyncToken(token)
-          Actions.player()
-          //this.props.navigator.replace({component: PlayerView})
+    myModuleEvt.addListener('EventReminder', (data) => {
+      console.log('EventReminder')
+      console.log(data)
+      var message = data.object[0]
+      if(data.object == "showPlayer"){
+        this.setState({loggedIn:true}, 
+        function(){
+          this.forceUpdate()
         })
-      }else{
-        
-          SpotifyAuth.renewToken((token)=>{
-            console.log(token)
-            if(!token){
-              this.setState({loggedIn:false}, 
-              function(){
-                this.forceUpdate()
-              })
-            }else{
-              this.setState({loggedIn:true}, 
-              function(){
-                this.forceUpdate()
-              })
-              this._setAsyncToken(token)
-              Actions.player()
-              //this.props.navigator.replace({component: PlayerView})
-            }
 
-          })
-        
-        // AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-        //   if(!res){
-        //     this.setState({loggedIn:false}, 
-        //     function(){
-        //         this.forceUpdate()
-        //     })
-        //   }else{
-        //     this.setState({loggedIn:true}, 
-        //     function(){
-        //       this.forceUpdate()
-        //     })
-        //   }
-        // })
+        Actions.player()
+      }else if(data.object == "audioStreamingDidLogin"){
+        this.setState({loggedIn:true}, 
+        function(){
+          this.forceUpdate()
+        })
+
+        Actions.player()
+      }else if(message == "didReceiveError: Wrong username or password"){
+        console.log("didReceiveError: Wrong username or password")
+        SpotifyAuth.logout()
+        this.setState({loggedIn:false}, 
+        function(){
+          this.forceUpdate()
+        })
       }
     })
+
   }
 }

@@ -38,7 +38,7 @@ export default class NeedPrimium extends Component {
   }
   componentDidMount() {
     reset = true
-    SpotifyAuth.logout()
+    //SpotifyAuth.logout()
     
   }
 }

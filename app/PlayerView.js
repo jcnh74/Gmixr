@@ -302,14 +302,14 @@ export default class PlayerView extends Component {
     })
     .then((response) => response.json())
     .then((responseJson) => {
-      
+      console.log(responseJson)
       if(responseJson.product == "premium"){
         this.setState({
           currentUser: responseJson,
           userAquired:true
         })
       }else{
-        Actions.notice()
+        //Actions.notice()
         //this.props.navigator.replace({component: NeedPrimium})
       }
 
@@ -1003,8 +1003,8 @@ export default class PlayerView extends Component {
   }
 
   componentDidMount() {
-    this._getUser()
 
+    this._getUser()
 
     // Add Listeners from IOS
     Orientation.addOrientationListener(this._orientationDidChange)

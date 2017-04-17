@@ -30,16 +30,17 @@
 
 // The URL to your token swap endpoint
 // If you don't provide a token swap service url the login will use implicit grant tokens, which means that your user will need to sign in again every time the token expires.
-
-#define kTokenSwapServiceURL "https://pure-forest-85399.herokuapp.com/swap"
-//#define kTokenSwapServiceURL "http://localhost:4343/swap"
+//#define kTokenSwapServiceURL "https://gmixr-spotify-token-service.herokuapp.com/swap"
+//#define kTokenSwapServiceURL "https://pure-forest-85399.herokuapp.com/swap"
+#define kTokenSwapServiceURL "http://localhost:1234/swap"
 
 
 // The URL to your token refresh endpoint
 // If you don't provide a token refresh service url, the user will need to sign in again every time their token expires.
 
-#define kTokenRefreshServiceURL "https://pure-forest-85399.herokuapp.com/refresh"
-//#define kTokenRefreshServiceURL "http://localhost:4343/refresh"
+//#define kTokenRefreshServiceURL "https://gmixr-spotify-token-service.herokuapp.com/refresh"
+//#define kTokenRefreshServiceURL "https://pure-forest-85399.herokuapp.com/refresh"
+#define kTokenRefreshServiceURL "http://localhost:1234/refresh"
 
 
 #define kSessionUserDefaultsKey "SpotifySession"

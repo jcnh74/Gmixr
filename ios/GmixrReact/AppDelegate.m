@@ -12,7 +12,6 @@
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
-#import <React/RCTLinkingManager.h>
 
 #import <SpotifyAuthentication/SpotifyAuthentication.h>
 #import <SpotifyMetadata/SpotifyMetadata.h>
@@ -45,7 +44,10 @@
   
   SPTAuth *auth = [SPTAuth defaultInstance];
   auth.clientID = @kClientId;
-  auth.requestedScopes = @[SPTAuthStreamingScope];
+  
+  //SPTAuthUserFollowModifyScope
+  
+  auth.requestedScopes = @[SPTAuthPlaylistReadPrivateScope, SPTAuthPlaylistModifyPrivateScope, SPTAuthPlaylistModifyPublicScope, SPTAuthUserFollowModifyScope, SPTAuthUserFollowReadScope, SPTAuthUserLibraryReadScope, SPTAuthUserLibraryModifyScope, SPTAuthUserReadPrivateScope, SPTAuthUserReadBirthDateScope, SPTAuthUserReadEmailScope, SPTAuthStreamingScope];
   auth.redirectURL = [NSURL URLWithString:@kCallbackURL];
 #ifdef kTokenSwapServiceURL
   auth.tokenSwapURL = [NSURL URLWithString:@kTokenSwapServiceURL];
@@ -81,21 +83,12 @@
    helps us filter out URLs that aren't authentication URLs (i.e., URLs you use elsewhere in your application).
    */
   
-  
   if ([auth canHandleURL:url]) {
     [auth handleAuthCallbackWithTriggeredAuthURL:url callback:authCallback];
     return YES;
   }
   
   return NO;
-}
-
-- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity
- restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler
-{
-  return [RCTLinkingManager application:application
-                   continueUserActivity:userActivity
-                     restorationHandler:restorationHandler];
 }
 
 

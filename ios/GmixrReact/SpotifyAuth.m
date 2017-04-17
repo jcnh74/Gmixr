@@ -46,43 +46,57 @@
 
 RCT_EXPORT_MODULE()
 
-//Start Auth process
-RCT_EXPORT_METHOD(checkSession:(RCTResponseSenderBlock)block)
-{
-  
-  NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
 
-  [self setCredentials];
+
+
+
+//Logout from Spotify
+RCT_EXPORT_METHOD(setNotifications)
+{
   
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sessionUpdatedNotification:) name:@"sessionUpdated" object:nil];
 
-  //  [notificationCenter removeObserver:self name:@"loginRes" object:nil];
+}
 
-
-
+//Start Auth process
+RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
+{
+  
+  NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+  
+  NSArray *requestedScopes = @[@"streaming", @"playlist-read-private", @"playlist-modify-public", @"user-follow-modify", @"user-follow-read", @"user-library-read", @"user-library-modify", @"user-read-private", @"user-read-birthdate", @"user-read-email"];
+  SpotifyAuth *sharedManager = [SpotifyAuth sharedManager];
+  //set the sharedManager properties
+  [sharedManager setClientID:@kClientId];
+  [sharedManager setRequestedScopes:requestedScopes];
+  [sharedManager setMyScheme:@kCallbackURL];
+  
   //Observer for successful login
   [notificationCenter addObserverForName:@"loginRes" object:nil queue:nil usingBlock:^(NSNotification *notification)
-  {
-    
-    NSString *token = [notification object];
-    //if there is an error key in the userInfo dictionary send the error, otherwise null
-    NSLog(@"addObserverForName loginRes token:  %@",token);
-    if(token != nil){
-      block(@[token]);
-      
-    } else {
-      block(@[[NSNull null]]);
-    }
-  }];
-  
-  self.firstLoad = YES;
-  self.loggedIn = NO;
-  self.didChangeMetadata = NO;
-  self.didChangePlaybackStatus = NO;
-  
-  [self checkSession];
+   {
+     //if there is an error key in the userInfo dictionary send the error, otherwise null
+//     if(notification.userInfo[@"error"] != nil){
+//       block(@[notification.userInfo[@"error"]]);
+//     } else {
+//       block(@[[NSNull null]]);
+//
+//     }
+     NSString *token = [notification object];
+     NSLog(@"addObserverForName loginRes token:  %@",token);
 
+     if(token != nil){
+       block(@[token]);
+       [self showPlayer];
+     } else {
+       block(@[[NSNull null]]);
+     }
+     
+   }];
+  
+  [self startAuth:@kClientId setRedirectURL:@kCallbackURL setRequestedScopes:requestedScopes];
+  
 }
+
 
 
 
@@ -92,87 +106,32 @@ RCT_EXPORT_METHOD(checkSession:(RCTResponseSenderBlock)block)
 ////  Auth Methods
 /////////////////////////////////
 
-- (void)setCredentials
-{
-  SpotifyAuth *sharedManager = [SpotifyAuth sharedManager];
-  NSArray *requestedScopes = @[@"streaming@", @"playlist-read-private@", @"playlist-modify-public@", @"user-follow-modify@", @"user-follow-read@", @"user-library-read@", @"user-library-modify@", @"user-read-private@", @"user-read-birthdate@", @"user-read-email@"];
-  
-  NSMutableArray *scopes = [NSMutableArray array];
-  //Turn scope arry of strings into an array of SPTAuth...Scope objects
-  //playlist-read-private playlist-modify-public user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email
-  for (int i = 0; i < [requestedScopes count]; i++) {
-    if([requestedScopes[i]  isEqual: @"playlist-read-private"]){
-      [scopes addObject: SPTAuthPlaylistReadPrivateScope];
-    } else if([requestedScopes[i]  isEqual: @"playlist-modify-private"]){
-      [scopes addObject: SPTAuthPlaylistModifyPrivateScope];
-    } else if([requestedScopes[i]  isEqual: @"playlist-modify-public"]){
-      [scopes addObject: SPTAuthPlaylistModifyPublicScope];
-    } else if([requestedScopes[i]  isEqual: @"user-follow-modify"]){
-      [scopes addObject: SPTAuthUserFollowModifyScope];
-    } else if([requestedScopes[i]  isEqual: @"user-follow-read"]){
-      [scopes addObject: SPTAuthUserFollowReadScope];
-    } else if([requestedScopes[i]  isEqual: @"user-library-read"]){
-      [scopes addObject: SPTAuthUserLibraryReadScope];
-    } else if([requestedScopes[i]  isEqual: @"user-library-modify"]){
-      [scopes addObject: SPTAuthUserLibraryModifyScope];
-    } else if([requestedScopes[i]  isEqual: @"user-read-private"]){
-      [scopes addObject: SPTAuthUserReadPrivateScope];
-    } else if([requestedScopes[i]  isEqual: @"user-read-birthdate"]){
-      [scopes addObject: SPTAuthUserReadBirthDateScope];
-    } else if([requestedScopes[i]  isEqual: @"user-read-email"]){
-      [scopes addObject: SPTAuthUserReadEmailScope];
-    } else if([requestedScopes[i]  isEqual: @"streaming"]){
-      [scopes addObject: SPTAuthStreamingScope];
-    }
-  }
-  
-  
-  [sharedManager setClientID:@kClientId];
-  [sharedManager setRequestedScopes:requestedScopes];
-  [sharedManager setMyScheme:@kCallbackURL];
-
-}
 // Notification to update session
 - (void)sessionUpdatedNotification:(NSNotification *)notification
 {
-  self.firstLoad = NO;
-  //SpotifyAuth *sharedManager = [SpotifyAuth sharedManager];
-  
-  
-  AppDelegate *delegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-  
   SPTAuth *auth = [SPTAuth defaultInstance];
+
+  AppDelegate *delegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
   [delegate.window.rootViewController dismissViewControllerAnimated:YES completion:nil];
   
   
   if (auth.session && [auth.session isValid]) {
-    NSLog(@"All Good");
     NSString *token = [auth.session accessToken];
-    NSLog(@"TOKEN: %@",token);
+
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-    
-    self.player = [SPTAudioStreamingController sharedInstance];
-    NSError *error = nil;
-    if ([self.player startWithClientId:auth.clientID audioController:nil allowCaching:YES error:&error]) {
-      self.player.delegate = self;
-      self.player.playbackDelegate = self;
-      self.player.diskCache = [[SPTDiskCache alloc] initWithCapacity:1024 * 1024 * 64];
-      NSLog(@"loginWithAccessToken: %@", token);
-      [self.player loginWithAccessToken:token];
-    } else {
-      self.player = nil;
-      UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error init" message:[error description] preferredStyle:UIAlertControllerStyleAlert];
-      [alert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:nil]];
-      //[self presentViewController:alert animated:YES completion:nil];
-      [self closeSession];
-    }
-    
-    
+
     [notificationCenter postNotificationName:@"loginRes" object:token];
     [notificationCenter removeObserver:self name:@"loginRes" object:nil];
+    
   } else {
     NSLog(@"*** Failed to log in");
   }
+}
+
+- (void)showPlayer
+{
+   NSDictionary* userInfo = @{@"object": @"showPlayer"};
+   [[NSNotificationCenter defaultCenter] postNotificationName:@"EventFromSpotify" object:nil userInfo:userInfo];
 }
 
 
@@ -207,6 +166,7 @@ RCT_EXPORT_METHOD(checkSession:(RCTResponseSenderBlock)block)
     }
   }
   
+  NSLog(@"requestedScopes: %@",scopes);
   
   [[SPTAuth defaultInstance] setClientID:clientID];
   [[SPTAuth defaultInstance] setRedirectURL:[NSURL URLWithString:redirectURL]];
@@ -240,6 +200,26 @@ RCT_EXPORT_METHOD(checkSession:(RCTResponseSenderBlock)block)
   
 }
 
+- (void)renewTokenAndShowPlayer
+{
+  SPTAuth *auth = [SPTAuth defaultInstance];
+  
+  [auth renewSession:auth.session callback:^(NSError *error, SPTSession *session) {
+    auth.session = session;
+    
+    if (error) {
+      
+      //Refreshing token failed.
+      NSDictionary* userInfo = @{@"object": error};
+      [[NSNotificationCenter defaultCenter] postNotificationName:@"EventFromSpotify" object:nil userInfo:userInfo];
+      
+      NSLog(@"*** Error renewing session: %@", error);
+      return;
+    }
+    [self showPlayer];
+  }];
+}
+
 
 - (void)renewToken
 {
@@ -257,6 +237,8 @@ RCT_EXPORT_METHOD(checkSession:(RCTResponseSenderBlock)block)
     
     AppDelegate *delegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     [delegate.window.rootViewController dismissViewControllerAnimated:YES completion:nil];
+    
+    [self showPlayer];
     
   }];
 }
@@ -279,13 +261,13 @@ RCT_EXPORT_METHOD(renewToken:(RCTResponseSenderBlock)block)
     }
     
     NSString *token = [auth.session accessToken];
-
+    
     if(token){
       block(@[token]);
     }else{
       block(@[@""]);
     }
-
+    
     [self handleNewSession];
     
   }];
@@ -318,30 +300,30 @@ RCT_EXPORT_METHOD(loginWithToken:(NSString *)token callback:(RCTResponseSenderBl
 //Returns true when SPTAudioStreamingController is initialized, otherwise false
 RCT_EXPORT_METHOD(getStatus:(RCTResponseSenderBlock)block)
 {
-
-  SPTSession *session = [[SpotifyAuth sharedManager] session];
+  
   SPTAuth *auth = [SPTAuth defaultInstance];
+  // Uncomment to turn off native/SSO/flip-flop login flow
+  //auth.allowNativeLogin = NO;
   
-  
-  NSLog(@"auth.session: %@", session);
   // Check if we have a token at all
-  if (session == nil) {
+  if (auth.session == nil) {
     block(@[@"NoSession"]);
     return;
-    //[self handleNewSession];
   }
   
   // Check if it's still valid
-  if ([session isValid] && self.firstLoad) {
+  if ([auth.session isValid] && self.firstLoad) {
     // It's still valid, show the player.
     block(@[@"Success"]);
+    [self showPlayer];
     return;
   }
   
-   //Oh noes, the token has expired, if we have a token refresh service set up, we'll call tat one.
-  
+  // Oh noes, the token has expired, if we have a token refresh service set up, we'll call tat one.
   if (auth.hasTokenRefreshService) {
     block(@[@"Token expired"]);
+    //[self checkSession];
+    [self renewTokenAndShowPlayer];
     return;
   }
 
@@ -910,10 +892,7 @@ RCT_EXPORT_METHOD(performSearchWithQuery:(NSString *)searchQuery
 
 //Check if session is valid and renew it if not
 -(void)checkSession{
-  NSLog(@"checkSession");
   SpotifyAuth *sharedManager = [SpotifyAuth sharedManager];
-  [self setCredentials];
-  
   if (![[sharedManager session] isValid]){
     [[SPTAuth defaultInstance] renewSession:[sharedManager session] callback:^(NSError *error, SPTSession *session) {
       if(error != nil){
@@ -924,6 +903,7 @@ RCT_EXPORT_METHOD(performSearchWithQuery:(NSString *)searchQuery
       } else {
         [sharedManager setSession:session];
         [[sharedManager player] loginWithAccessToken:session.accessToken];
+        
       }
     }];
   }

@@ -43,7 +43,7 @@ require 'encrypted_strings'
 # print "\7\7"
 # sleep(2)
 CLIENT_ID = "8ddda79a38e74b2f9ba8c62d2280baac"
-CLIENT_SECRET = "5454bddf532f4b1e863fe7fed2f7db4f"
+CLIENT_SECRET = "d1e0c61800f34afcbae74945da725823"
 ENCRYPTION_SECRET = "cFJLyifeUJUBFWdHzVbykfDmPHtLKLGzViHW9aHGmyTLD8hGXC"
 CLIENT_CALLBACK_URL = "gmixr://callback"
 AUTH_HEADER = "Basic " + Base64.strict_encode64(CLIENT_ID + ":" + CLIENT_SECRET)
