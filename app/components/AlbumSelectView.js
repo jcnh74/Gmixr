@@ -37,7 +37,8 @@ export default class AlbumSelectView extends Component {
       }),
       albumsData: [],
       page: 0,
-      total: 0
+      total: 0,
+      contentOffsetY:0
     }
   }
 
@@ -112,13 +113,16 @@ export default class AlbumSelectView extends Component {
       this.setState({
         userAlbums: merge,
         total: responseJson.total
+      }, function(){
+
+        AsyncStorage.setItem( '@GmixrStore:tracksTotal', JSON.stringify(responseJson.total) )
+        AsyncStorage.setItem( '@GmixrStore:tracks', JSON.stringify(merge) )
+
+        this._processAlbums(merge)
+        this._fetchAlbums(bearer)
+
       })
 
-      AsyncStorage.setItem( '@GmixrStore:tracksTotal', JSON.stringify(responseJson.total) )
-      AsyncStorage.setItem( '@GmixrStore:tracks', JSON.stringify(merge) )
-
-
-      this._processAlbums(merge)
 
       
     })
@@ -135,32 +139,29 @@ export default class AlbumSelectView extends Component {
     // AsyncStorage.removeItem('@GmixrStore:albums')
 
     AsyncStorage.getItem('@GmixrStore:tracks', (err, res) => {
+
+      if(err){
+        return
+      }
+
       if(res){
-        AsyncStorage.getItem('@GmixrStore:tracksTotal', (error, total) => {
-          this.setState({
-            total: parseInt(total)
-          }, function(){
-            this._processAlbums(JSON.parse(res))
-          })
-        })
+        this._processAlbums(JSON.parse(res))
       }else{
-        var downloaded = this.state.page*50
 
-        if(this.state.total >= downloaded){
 
-          SpotifyAuth.getToken((result)=>{
+        SpotifyAuth.getToken((result)=>{
 
-            if(result){
+          if(result){
 
-              this._fetchAlbums(result)
+            this._fetchAlbums(result)
 
-            }else{
-              AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-                this._fetchAlbums(res)
-              })
-            }
-          })
-        }
+          }else{
+            AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
+              this._fetchAlbums(res)
+            })
+          }
+        })
+
       }
     })
 
@@ -170,27 +171,9 @@ export default class AlbumSelectView extends Component {
     this.props.chooseAlbum(albums)
   }
 
-  _onEndReached(){
-
-    var downloaded = this.state.page*50
-
-    if(this.state.total >= downloaded){
-
-      SpotifyAuth.getToken((result)=>{
-
-        if(result){
-
-          this._fetchAlbums(result)
-
-        }else{
-          AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-            this._fetchAlbums(res)
-          })
-        }
-      })
-    }
+  _handleScroll(event: Object) {
+    AsyncStorage.setItem( '@GmixrStore:albumsOffsetY', JSON.stringify(event.nativeEvent.contentOffset.y) )
   }
-
 
   render() {
 
@@ -205,10 +188,21 @@ export default class AlbumSelectView extends Component {
           dataSource={this.state.dataSource}
           renderRow={(rowData, sectionID, rowID) => <AlbumRow key={rowID} data={rowData} chooseAlbum={(albums) => this._chooseAlbum(albums)} />} 
           enableEmptySections={true}
-          onEndReached={() => this._onEndReached()}
-          onEndReachedThreshold={2000} />
+          onScroll={this._handleScroll}
+          contentOffset={{y:this.state.contentOffsetY}}
+          scrollEventThrottle={16} />
       </View>
     )
+  }
+
+  componentWillMount() {
+    AsyncStorage.getItem('@GmixrStore:albumsOffsetY', (err, res) => {
+      if(res){
+        this.setState({
+          contentOffsetY: parseInt(res)
+        })
+      }
+    })
   }
 
   componentDidMount() {

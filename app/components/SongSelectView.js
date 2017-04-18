@@ -38,7 +38,8 @@ export default class SongSelectView extends Component {
       }),
       tracksData: [],
       page: 0,
-      total: 0
+      total: 0,
+      contentOffsetY:0
     }
   }
 
@@ -82,19 +83,25 @@ export default class SongSelectView extends Component {
         return
       }
 
+      if( ( this.state.page * 50 )  >= responseJson.total ){
+        return
+      }
+
+
       var tracks = responseJson.items
       var merge = userTracks.concat(tracks)
 
       this.setState({
         userTracks: merge,
         total: responseJson.total
+      }, function(){
+        AsyncStorage.setItem( '@GmixrStore:tracksTotal', JSON.stringify(responseJson.total) )
+        AsyncStorage.setItem( '@GmixrStore:tracks', JSON.stringify(merge) )
+
+        this._processTracks(tracks)
+        this._fetchTracks(bearer)
       })
 
-      AsyncStorage.setItem( '@GmixrStore:tracksTotal', JSON.stringify(responseJson.total) )
-      AsyncStorage.setItem( '@GmixrStore:tracks', JSON.stringify(merge) )
-
-
-      this._processTracks(merge)
       
     })
     .catch((err) => {
@@ -107,33 +114,30 @@ export default class SongSelectView extends Component {
   _getUsersTracks(){
 
     AsyncStorage.getItem('@GmixrStore:tracks', (err, res) => {
+
+      if(err){
+        return
+      }
+
       if(res){
-        AsyncStorage.getItem('@GmixrStore:tracksTotal', (error, total) => {
-          this.setState({
-            total: parseInt(total)
-          }, function(){
-            this._processTracks(JSON.parse(res))
-          })
-        })
+        this._processTracks(JSON.parse(res))
         
       }else{
-        var downloaded = this.state.page*50
 
-        if(this.state.total >= downloaded){
+        SpotifyAuth.getToken((result)=>{
 
-          SpotifyAuth.getToken((result)=>{
+          if(result){
 
-            if(result){
+            this._fetchTracks(result)
 
-              this._fetchTracks(result)
+          }else{
+            AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
 
-            }else{
-              AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-                this._fetchTracks(res)
-              })
-            }
-          })
-        }
+              this._fetchTracks(res)
+            })
+          }
+        })
+
       }
     })
 
@@ -143,25 +147,8 @@ export default class SongSelectView extends Component {
     this.props.chooseTrack(track)
   }
 
-  _onEndReached(){
-
-    var downloaded = this.state.page*50
-
-    if(this.state.total >= downloaded){
-
-      SpotifyAuth.getToken((result)=>{
-
-        if(result){
-
-          this._fetchTracks(result)
-
-        }else{
-          AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-            this._fetchTracks(res)
-          })
-        }
-      })
-    }
+  _handleScroll(event: Object) {
+    AsyncStorage.setItem( '@GmixrStore:tracksOffsetY', JSON.stringify(event.nativeEvent.contentOffset.y) )
   }
 
 
@@ -178,10 +165,21 @@ export default class SongSelectView extends Component {
           dataSource={this.state.dataSource}
           renderRow={(rowData, sectionID, rowID) => <TrackRow key={rowID} data={rowData} chooseTrack={(track) => this._chooseTrack(track)} />} 
           enableEmptySections={true}
-          onEndReached={() => this._onEndReached()}
-          onEndReachedThreshold={2000} />
+          onScroll={this._handleScroll}
+          contentOffset={{y:this.state.contentOffsetY}}
+          scrollEventThrottle={16} />
       </View>
     )
+  }
+
+  componentWillMount() {
+    AsyncStorage.getItem('@GmixrStore:tracksOffsetY', (err, res) => {
+      if(res){
+        this.setState({
+          contentOffsetY: parseInt(res)
+        })
+      }
+    })
   }
 
   componentDidMount() {

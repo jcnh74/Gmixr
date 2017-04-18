@@ -38,7 +38,8 @@ export default class ArtistSelectView extends Component {
       artistData: [],
       page: 0,
       total: 0,
-      next: ''
+      next: '',
+      contentOffsetY: 0
     }
   }
 
@@ -114,6 +115,7 @@ export default class ArtistSelectView extends Component {
           AsyncStorage.setItem( '@GmixrStore:artist', JSON.stringify(merge) )
 
           this._processArtists(merge)
+          this._fetchArtists(bearer)
         }
       })
       
@@ -128,31 +130,30 @@ export default class ArtistSelectView extends Component {
   _getUsersArtists(){
 
     AsyncStorage.getItem('@GmixrStore:artist', (err, res) => {
+
+      if(err){
+        return
+      }
+
       if(res){
-        AsyncStorage.getItem('@GmixrStore:artistNext', (error, next) => {
-          this.setState({
-            next: next
-          }, function(){
-            this._processArtists(JSON.parse(res))
-          })
-        })
+
+        this._processArtists(JSON.parse(res))
+
       }else{
 
-        if(this.state.next !== null){
+        SpotifyAuth.getToken((result)=>{
 
-          SpotifyAuth.getToken((result)=>{
+          if(result){
 
-            if(result){
+            this._fetchArtists(result)
 
-              this._fetchArtists(result)
+          }else{
+            AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
+              this._fetchArtists(res)
+            })
+          }
+        })
 
-            }else{
-              AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-                this._fetchArtists(res)
-              })
-            }
-          })
-        }
       }
     })
 
@@ -162,23 +163,8 @@ export default class ArtistSelectView extends Component {
     this.props.chooseArtist(playlist)
   }
 
-  _onEndReached(){
-
-    if(this.state.next !== null){
-
-      SpotifyAuth.getToken((result)=>{
-
-        if(result){
-
-          this._fetchArtists(result)
-
-        }else{
-          AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-            this._fetchArtists(res)
-          })
-        }
-      })
-    }
+  _handleScroll(event: Object) {
+    AsyncStorage.setItem( '@GmixrStore:artistsOffsetY', JSON.stringify(event.nativeEvent.contentOffset.y) )
   }
 
   render() {
@@ -194,10 +180,21 @@ export default class ArtistSelectView extends Component {
           dataSource={this.state.dataSource}
           renderRow={(rowData, sectionID, rowID) => <ArtistRow key={rowID} data={rowData} chooseArtist={(playlist) => this._chooseArtist(playlist)} />} 
           enableEmptySections={true}
-          onEndReached={() => this._onEndReached()}
-          onEndReachedThreshold={2000} />
+          onScroll={this._handleScroll}
+          contentOffset={{y:this.state.contentOffsetY}}
+          scrollEventThrottle={16} />
       </View>
     )
+  }
+
+  componentWillMount() {
+    AsyncStorage.getItem('@GmixrStore:artistsOffsetY', (err, res) => {
+      if(res){
+        this.setState({
+          contentOffsetY: parseInt(res)
+        })
+      }
+    })
   }
 
   componentDidMount() {

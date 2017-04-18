@@ -20,7 +20,8 @@ import {
   View,
   ListView,
   Dimensions,
-  LayoutAnimation
+  LayoutAnimation,
+  Linking
 } from 'react-native'
 
 import EventEmitter from 'EventEmitter'
@@ -51,6 +52,7 @@ import SongSelectView from './components/SongSelectView'
 import SearchSelectView from './components/SearchSelectView'
 import AlbumSelectView from './components/AlbumSelectView'
 import ArtistSelectView from './components/ArtistSelectView'
+import SettingsView from './components/SettingsView'
 
 // Native Modules
 const SpotifyAuth = NativeModules.SpotifyAuth
@@ -94,11 +96,13 @@ export default class PlayerView extends Component {
     // Actions
     this._orientationDidChange = this._orientationDidChange.bind(this)
     this._launchSelector = this._launchSelector.bind(this)
+    this._handleOpenURL = this._handleOpenURL.bind(this)
 
     this.eventEmitter = new EventEmitter()
 
     // State
     this.state = {
+      isLoggedIn: false,
       layoutProps: {
         orientation: 'portrait',
         width: width,
@@ -156,7 +160,6 @@ export default class PlayerView extends Component {
       savedListView: 'playlists',
       dataSource: ds.cloneWithRows([]),
       tasks: []
-
     }
   }
 
@@ -302,15 +305,23 @@ export default class PlayerView extends Component {
     })
     .then((response) => response.json())
     .then((responseJson) => {
+
       console.log(responseJson)
-      if(responseJson.product == "premium"){
+      
+      if(responseJson.product == "open"){
+        
+        let keys = ['@GmixrStore:token', '@GmixrStore:firstVisit'];
+        AsyncStorage.multiRemove(keys, (err) => {
+          SpotifyAuth.logout()
+          // Actions.login()
+        })
+
+      }else if(responseJson.product == "premium"){
         this.setState({
           currentUser: responseJson,
           userAquired:true
         })
-      }else{
-        //Actions.notice()
-        //this.props.navigator.replace({component: NeedPrimium})
+        this.eventEmitter.emit('userAquired')
       }
 
     })
@@ -446,7 +457,6 @@ export default class PlayerView extends Component {
         this._getAudioFeatures(responseJson.id, result)
 
         this._getGifs([responseJson.artists[0].name, responseJson.name])
-
         
       })
       .catch((err) => {
@@ -588,33 +598,33 @@ export default class PlayerView extends Component {
 
     AsyncStorage.getItem('@GmixrStore:'+this.state.currentTrack.trackID, (err, res) => {
       if(res){
-        var termArray = JSON.parse(res)
-        var termString = ''
-        for(i = 0; i < termArray.length; i++){
-          var space = ''
-          if(i > 0){
-            space = ', '
-          }
-          termString += space + termArray[i]
+        // var termArray = res
+        // var termString = ''
+        // for(i = 0; i < termArray.length; i++){
+        //   var space = ''
+        //   if(i > 0){
+        //     space = ', '
+        //   }
+        //   termString += space + termArray[i]
 
-        }
-        this.setState({loadingGifs: true, textTerms: termString})
-        term = encodeURIComponent(termString)
+        // }
+        this.setState({loadingGifs: true, textTerms: res})
+        term = encodeURIComponent(res)
         var gifUrls = []
 
       }else{
 
-        var termString = ''
-        for(i = 0; i < terms.length; i++){
-          var space = ''
-          if(i > 0){
-            space = ', '
-          }
-          termString += space + terms[i]
-        }
+        // var termString = ''
+        // for(i = 0; i < terms.length; i++){
+        //   var space = ''
+        //   if(i > 0){
+        //     space = ', '
+        //   }
+        //   termString += space + terms[i]
+        // }
 
-        this.setState({loadingGifs: true, textTerms: termString})
-        term = encodeURIComponent(termString)
+        this.setState({loadingGifs: true, textTerms: terms})
+        term = encodeURIComponent(terms)
         var gifUrls = []
 
       }
@@ -657,17 +667,17 @@ export default class PlayerView extends Component {
   }
 
   _setAsyncTrackTerms(trackID, terms){
-    AsyncStorage.setItem('@GmixrStore:'+trackID, JSON.stringify(terms))
+    AsyncStorage.setItem('@GmixrStore:'+trackID, terms)
   }
 
   _newGifRequest(terms){
 
-    gifTerms = terms.split(',');
+    
 
     this._cancelGetData()
     this._clearGifs()
-    this._setAsyncTrackTerms(this.state.currentTrack.trackID, gifTerms)
-    this._getGifs(gifTerms)
+    this._setAsyncTrackTerms(this.state.currentTrack.trackID, terms)
+    this._getGifs(terms)
   }
 
   _choosePlaylist(playlist){
@@ -914,6 +924,17 @@ export default class PlayerView extends Component {
                         events={this.eventEmitter}
                         vidHeight={vidHeight} />
                     )
+                  case 'settings':
+                    return (
+                      <SettingsView
+                        ref="settingsView"
+                        currentUser={this.state.currentUser}
+                        avatar={avatar}
+                        layoutProps={this.state.layoutProps}
+                        events={this.eventEmitter}
+                        vidHeight={vidHeight}
+                        />
+                    )
                   case 'remove':
                     null
                   default :
@@ -937,7 +958,9 @@ export default class PlayerView extends Component {
                 _setState={(state) => this._setState(state)}
                 _newGifRequest={(event) => this._newGifRequest(event)}
                 _cancelGetData={this._cancelGetData.bind(this)}
+                _launchSelector={(selection) => this._launchSelector(selection)}
                 avatar={avatar}
+                currentUser={this.state.currentUser}
                 events={this.eventEmitter}
                 vidHeight={vidHeight} />
              </View>
@@ -1003,8 +1026,19 @@ export default class PlayerView extends Component {
   }
 
   componentDidMount() {
-
     this._getUser()
+
+    Linking.addEventListener('url', this._handleOpenURL);
+
+
+    var url = Linking.getInitialURL().then((url) => {
+      if (url) {
+        console.log('Initial url is: ' + url);
+        var event = {url: url}
+        this.eventEmitter.addListener('loggedIn', () => this._handleOpenURL(event), this)
+      }
+    }).catch(err => console.error('An error occurred', err));
+
 
     // Add Listeners from IOS
     Orientation.addOrientationListener(this._orientationDidChange)
@@ -1012,12 +1046,13 @@ export default class PlayerView extends Component {
     myModuleEvt.addListener('EventReminder', (data) => {
 
       var message = data.object[0]
+      console.log(data.object)
       if(message.includes("didStartPlayingTrack")){
 
         this._cancelGetData()
         
         var trackURI = message.replace("didStartPlayingTrack: ", "")
-        this._setTrack(trackURI)
+        this._setTrack(trackURI, false)
         this._play()
 
 
@@ -1033,11 +1068,15 @@ export default class PlayerView extends Component {
         
         var trackURI = message.replace("didChangeMetadata: ", "")
 
+      }else if(message == "didReceiveError: Spotify Premium Required"){
+
+
       }else if(data.object == "didChangePlaybackStatus"){
 
       }else if(data.object == "audioStreamingDidLogin"){
 
-        this.eventEmitter.emit('userAquired')
+        this.setState({isLoggedIn:true})
+        this.eventEmitter.emit('loggedIn')
       }
     })
   }
@@ -1051,7 +1090,61 @@ export default class PlayerView extends Component {
 
     Orientation.getOrientation((err,orientation)=> { })
     Orientation.removeOrientationListener(this._orientationDidChange)
+
+    Linking.removeEventListener('url', this._handleOpenURL);
     
+  }
+  
+  _handleOpenURL(event) {
+    var url = event.url
+    url = url.replace('gmixr://gmixr.com/?uri=','')
+    url = url.split('&terms=')
+
+    var itemURI = url[0]
+    var currentTrackID = itemURI.replace("spotify:track:", "")
+
+
+    
+    var terms = decodeURIComponent(url[1])
+
+    console.log(terms)
+
+    this.setState({
+      showListView: false,
+      currentListView: 'remove'
+    })
+
+    this._setAsyncTrackTerms(currentTrackID, terms)
+
+    this._newGifRequest(terms)
+
+    if(this.state.isLoggedIn == true){
+      SpotifyAuth.playSpotifyURI(itemURI, 0, 0, (error)=>{
+        if(error){
+          console.log(error)
+        }
+        SpotifyAuth.isRepeating((response)=>{
+          this.setState({
+            isRepeating: response
+          })
+        })
+        SpotifyAuth.isShuffling((response)=>{
+          this.setState({
+            isShuffling: response
+          })
+        })
+        this.setState({
+          isPlaying: true,
+          textTerms: terms
+        })
+        
+      })
+    }
+
+
+
+    //gmixr://gmixr.com/?uri=spotify:track:3SfPxUOoqIyXZrZou9R1WG&terms=80s%20movies
+    console.log(event.url);
   }
 }
 

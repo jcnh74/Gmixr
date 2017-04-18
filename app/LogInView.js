@@ -51,24 +51,28 @@ export default class LogInView extends Component {
 
   _loginToSpotify(){
 
-    SpotifyAuth.startAuth((accessToken)=>{
-      console.log('startAuth')
-      console.log(accessToken)
-      if(!accessToken){
+    this.setState({loggedIn:true}, function(){
+      this.forceUpdate()
 
-        SpotifyAuth.getToken((token)=>{
-          this._setAsyncToken(token)
-        })
+      SpotifyAuth.startAuth((accessToken)=>{
+        console.log('startAuth')
+        console.log(accessToken)
+        if(!accessToken){
 
-        //Actions.player()
-        //this.props.navigator.replace({component: PlayerView})
+          SpotifyAuth.getToken((token)=>{
+            this._setAsyncToken(token)
+          })
 
-      } else {
-        this._setAsyncToken(accessToken)
-        
-        //Actions.player()
-        //this.props.navigator.replace({component: PlayerView})
-      }
+          //Actions.player()
+          //this.props.navigator.replace({component: PlayerView})
+
+        } else {
+          this._setAsyncToken(accessToken)
+          
+          //Actions.player()
+          //this.props.navigator.replace({component: PlayerView})
+        }
+      })
     })
   }
 
@@ -92,7 +96,7 @@ export default class LogInView extends Component {
             />
           ) : (
           <FAIcon.Button name="spotify" backgroundColor="#1ED760" size={32} onPress={this._loginToSpotify}>
-            <Text style={{fontSize:18, color:'white'}}>Login with Spotify</Text>
+            <Text style={{fontSize:18, color:'white'}}>Connect Premium Spotify Account</Text>
           </FAIcon.Button>
 
           )}
@@ -100,6 +104,7 @@ export default class LogInView extends Component {
     )
   }
   componentWillMount() {
+
     AsyncStorage.getItem('@GmixrStore:firstVisit', (err, res) => {
       if(res){
         console.log('firstVisit')
@@ -107,43 +112,40 @@ export default class LogInView extends Component {
       }
     })
 
-    SpotifyAuth.getStatus((result)=>{
-      console.log('getStatus')
-      console.log(result)
-      if(result == 'NoSession'){
+    // let keys = ['@GmixrStore:token', '@GmixrStore:playlists', '@GmixrStore:playlistsTotal'];
+    // AsyncStorage.multiRemove(keys, (err) => {
 
+      SpotifyAuth.getStatus((result)=>{
+        console.log('getStatus')
+        console.log(result)
+        if(result == 'NoSession'){
 
-        // SpotifyAuth.startAuth((accessToken)=>{
-        //   console.log('getToken')
-        //   console.log(accessToken)
-        //   this._setAsyncToken(accessToken)
-        //   if(!accessToken){
-        //     console.log('nothing')
-        //   }
-        // })
+          return
+        }
+        if(result == 'Token expired'){
 
-        return
-      }
-      if(result == 'Token expired'){
-        SpotifyAuth.renewToken((token)=>{
-          console.log('renewToken')
-          console.log(token)
-          this._setAsyncToken(token)
-          this.setState({loggedIn:true}, 
-          function(){
-            this.forceUpdate()
+        // AsyncStorage.removeItem('@GmixrStore:playlists')
+        // AsyncStorage.removeItem('@GmixrStore:playlistsTotal')
+
+          SpotifyAuth.renewToken((token)=>{
+
+            this._setAsyncToken(token)
+
+            this.setState({loggedIn:true}, function(){
+              this.forceUpdate()
+            })
+
+            //Actions.player()
           })
-
-          //Actions.player()
-        })
-      }
-    })
+        }
+      })
+    // });
   }
   componentDidMount() {
 
     SpotifyAuth.setNotifications()
 
-
+    console.log(this.props)
     // Clear Storage
     // AsyncStorage.removeItem('@GmixrStore:token')
     // AsyncStorage.removeItem('@GmixrStore:timestamp')
@@ -154,15 +156,13 @@ export default class LogInView extends Component {
       console.log(data)
       var message = data.object[0]
       if(data.object == "showPlayer"){
-        this.setState({loggedIn:true}, 
-        function(){
+        this.setState({loggedIn:true}, function(){
           this.forceUpdate()
         })
 
         Actions.player()
       }else if(data.object == "audioStreamingDidLogin"){
-        this.setState({loggedIn:true}, 
-        function(){
+        this.setState({loggedIn:true}, function(){
           this.forceUpdate()
         })
 
@@ -170,12 +170,16 @@ export default class LogInView extends Component {
       }else if(message == "didReceiveError: Wrong username or password"){
         console.log("didReceiveError: Wrong username or password")
         SpotifyAuth.logout()
-        this.setState({loggedIn:false}, 
-        function(){
+        this.setState({loggedIn:false}, function(){
           this.forceUpdate()
         })
       }
     })
+
+  }
+  componentWillUnmount() {
+
+    myModuleEvt.removeAllListeners('EventReminder')
 
   }
 }

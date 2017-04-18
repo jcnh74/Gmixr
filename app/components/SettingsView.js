@@ -6,6 +6,7 @@
 
 
 import React, { Component } from 'react'
+import { Actions } from 'react-native-router-flux';
 
 import {
   AsyncStorage,
@@ -40,6 +41,14 @@ export default class SettingsView extends Component {
     }
   }
 
+  _logout(){
+    AsyncStorage.removeItem('@GmixrStore:token', function(){
+      SpotifyAuth.logout()
+      Actions.login()
+    })
+
+  }
+
 
   render() {
 
@@ -57,7 +66,7 @@ export default class SettingsView extends Component {
           </Text>
         </View>
         <View style={{height:48, width: width, flex:-1}}>
-          <TouchableHighlight style={[styles.row]} onPress={() => Linking.openURL('https://www.spotify.com/us/account/apps/')} activeOpacity={1} underlayColor="transparent">
+          <TouchableHighlight style={[styles.row]} onPress={this._logout} activeOpacity={1} underlayColor="transparent">
 
             <View style={styles.flexRow}>
               <View>

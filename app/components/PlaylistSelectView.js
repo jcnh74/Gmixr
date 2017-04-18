@@ -38,7 +38,8 @@ export default class PlaylistSelectView extends Component {
       }),
       playlistData: [],
       page: 0,
-      total: 0
+      total: 0,
+      contentOffsetY:0
     }
   }
 
@@ -78,6 +79,8 @@ export default class PlaylistSelectView extends Component {
 
   }
 
+
+  // Get all the users Playlists
   // Get all the users Playlists
   _fetchPlaylists(bearer){
 
@@ -98,18 +101,27 @@ export default class PlaylistSelectView extends Component {
         return
       }
 
+      //console.log(responseJson.items)
+
+      if( ( this.state.page * 50 )  >= responseJson.total ){
+        return
+      }
+
       var playlists = responseJson.items
       var merge = userPlaylists.concat(playlists)
 
       this.setState({
         total: responseJson.total,
         userPlaylists: merge
+      }, function(){
+        AsyncStorage.setItem( '@GmixrStore:playlistsTotal', JSON.stringify(responseJson.total) )
+        AsyncStorage.setItem( '@GmixrStore:playlists', JSON.stringify(merge) )
+
+        this._processPlaylists(playlists)
+        this._fetchPlaylists(bearer)
       })
 
-      AsyncStorage.setItem( '@GmixrStore:playlistsTotal', JSON.stringify(responseJson.total) )
-      AsyncStorage.setItem( '@GmixrStore:playlists', JSON.stringify(merge) )
 
-      this._processPlaylists(playlists)
       
     })
     .catch((err) => {
@@ -123,32 +135,32 @@ export default class PlaylistSelectView extends Component {
 
     //AsyncStorage.removeItem('@GmixrStore:playlists')
     AsyncStorage.getItem('@GmixrStore:playlists', (err, res) => {
+
+      if(err){
+        return
+      }
       if(res){
-        AsyncStorage.getItem('@GmixrStore:playlistsTotal', (error, total) => {
-          this.setState({
-            total: parseInt(total)
-          }, function(){
-            this._processPlaylists(JSON.parse(res))
-          })
-        })
+
+        this._processPlaylists(JSON.parse(res))
+
       }else{
-        var downloaded = this.state.page*50
 
-        if(this.state.total >= downloaded){
 
-          SpotifyAuth.getToken((result)=>{
+        SpotifyAuth.getToken((result)=>{
 
-            if(result){
+          if(result){
 
-              this._fetchPlaylists(result)
+            this._fetchPlaylists(result)
 
-            }else{
-              AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-                this._fetchPlaylists(res)
-              })
-            }
-          })
-        }
+          }else{
+            AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
+
+              this._fetchPlaylists(res)
+            })
+          }
+        })
+        
+
       }
     })
   }
@@ -157,32 +169,13 @@ export default class PlaylistSelectView extends Component {
     this.props.choosePlaylist(playlist)
   }
 
-  _onEndReached(){
-
-    var downloaded = this.state.page*50
-
-    if(this.state.total >= downloaded){
-
-      SpotifyAuth.getToken((result)=>{
-
-        if(result){
-
-          this._fetchPlaylists(result)
-
-        }else{
-          AsyncStorage.getItem('@GmixrStore:token', (err, res) => {
-            this._fetchPlaylists(res)
-          })
-        }
-      })
-    }
+  _handleScroll(event: Object) {
+    AsyncStorage.setItem( '@GmixrStore:playlistsOffsetY', JSON.stringify(event.nativeEvent.contentOffset.y) )
   }
-
 
   render() {
 
     // AsyncStorage.removeItem('@GmixrStore:playlists')
-    // AsyncStorage.removeItem('@GmixrStore:playlistsTotal')
 
     return (
       <View>
@@ -192,17 +185,27 @@ export default class PlaylistSelectView extends Component {
           dataSource={this.state.dataSource}
           renderRow={(rowData, sectionID, rowID) => <PlaylistRow key={rowID} data={rowData} choosePlaylist={(playlist) => this._choosePlaylist(playlist)} />} 
           enableEmptySections={true}
-          onEndReached={() => this._onEndReached()}
-          onEndReachedThreshold={2000} />
+          onScroll={this._handleScroll}
+          contentOffset={{y:this.state.contentOffsetY}}
+          scrollEventThrottle={16} />
       </View>
     )
+  }
+
+  componentWillMount() {
+    AsyncStorage.getItem('@GmixrStore:playlistsOffsetY', (err, res) => {
+      if(res){
+        this.setState({
+          contentOffsetY: parseInt(res)
+        })
+      }
+    })
   }
 
   componentDidMount() {
 
     // IMPORTANT: HIDE IN RELEASE
-    AsyncStorage.removeItem('@GmixrStore:playlists')
-    AsyncStorage.removeItem('@GmixrStore:playlistsTotal')
+    // AsyncStorage.removeItem('@GmixrStore:playlists')
 
     this.props.events.addListener('userAquired', this._getUsersPlaylists, this)
 

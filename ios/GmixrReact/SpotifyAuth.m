@@ -64,7 +64,7 @@ RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
   
   NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
   
-  NSArray *requestedScopes = @[@"streaming", @"playlist-read-private", @"playlist-modify-public", @"user-follow-modify", @"user-follow-read", @"user-library-read", @"user-library-modify", @"user-read-private", @"user-read-birthdate", @"user-read-email"];
+  NSArray *requestedScopes = @[@"streaming", @"playlist-read-private", @"playlist-modify-public", @"user-follow-modify", @"user-follow-read", @"user-library-read", @"user-library-modify", @"user-read-private", @"user-read-birthdate", @"user-read-email", @"user-read-playback-state"];
   SpotifyAuth *sharedManager = [SpotifyAuth sharedManager];
   //set the sharedManager properties
   [sharedManager setClientID:@kClientId];
@@ -122,6 +122,7 @@ RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
 
     [notificationCenter postNotificationName:@"loginRes" object:token];
     [notificationCenter removeObserver:self name:@"loginRes" object:nil];
+    [self handleNewSession];
     
   } else {
     NSLog(@"*** Failed to log in");
@@ -216,6 +217,7 @@ RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
       NSLog(@"*** Error renewing session: %@", error);
       return;
     }
+
     [self showPlayer];
   }];
 }
@@ -473,9 +475,12 @@ RCT_EXPORT_METHOD(targetBitrate:(RCTResponseSenderBlock)block)
 //Logout from Spotify
 RCT_EXPORT_METHOD(logout)
 {
+  [self closeSession];
+  
   SPTAudioStreamingController *sharedIn = [SPTAudioStreamingController sharedInstance];
   SpotifyAuth *sharedManager = [SpotifyAuth sharedManager];
   [sharedManager setSession:nil];
+  
   [sharedIn logout];
 }
 
