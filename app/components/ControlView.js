@@ -226,6 +226,19 @@ export default class ControlView extends Component {
     })
   }
 
+  _setRepeat(){
+    var mode = (this.state.isRepeating) ? false : true
+    SpotifyAuth.setRepeat(mode, (error)=>{
+      if(error){
+        console.log('error:',error)
+      }
+      this.setState({
+        isRepeating: mode,
+      })
+
+    })
+  }
+
   _playPrevious(){
 
     this.props._cancelGetData()
@@ -303,19 +316,6 @@ export default class ControlView extends Component {
 
     })
   
-  }
-
-  _setRepeat(){
-    var mode = (this.state.isRepeating) ? false : true
-    SpotifyAuth.setRepeat(mode, (error)=>{
-      if(error){
-        console.log('error:',error)
-      }
-      this.setState({
-        isRepeating: mode,
-      })
-
-    })
   }
 
   _getEvent(event){

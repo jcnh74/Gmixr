@@ -25,6 +25,8 @@ export default class App extends Component {
             component={LogInView}
             initial={true}
             hideNavBar={true}
+            notice=""
+            userProduct="premium"
           />
           <Scene 
             key="player"

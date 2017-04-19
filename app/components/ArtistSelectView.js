@@ -43,7 +43,7 @@ export default class ArtistSelectView extends Component {
     }
   }
 
-  _processArtists(artists){
+  _processArtists(artists, callback){
 
     var mydata = this.state.artistData
 
@@ -67,6 +67,10 @@ export default class ArtistSelectView extends Component {
       albumsData: mydata,
       dataSource: this.state.dataSource.cloneWithRows(mydata),
       page: page + 1
+    }, () => {
+      if (typeof callback === "function") {
+          callback(true)
+      }
     })
  
 
@@ -102,6 +106,7 @@ export default class ArtistSelectView extends Component {
         return
       }
 
+
       console.log(responseJson)
 
       this.setState({
@@ -114,8 +119,10 @@ export default class ArtistSelectView extends Component {
           AsyncStorage.setItem( '@GmixrStore:artistNext', responseJson.artists.next )
           AsyncStorage.setItem( '@GmixrStore:artist', JSON.stringify(merge) )
 
-          this._processArtists(merge)
-          this._fetchArtists(bearer)
+          this._processArtists(merge, () => {
+            this._fetchArtists(bearer)
+          })
+          
         }
       })
       
@@ -192,6 +199,10 @@ export default class ArtistSelectView extends Component {
       if(res){
         this.setState({
           contentOffsetY: parseInt(res)
+        })
+      }else{
+        this.setState({
+          contentOffsetY: 0
         })
       }
     })

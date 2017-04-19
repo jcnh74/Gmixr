@@ -43,7 +43,7 @@ export default class PlaylistSelectView extends Component {
     }
   }
 
-  _processPlaylists(playlists){
+  _processPlaylists(playlists, callback){
 
     var mydata = this.state.playlistData
 
@@ -66,16 +66,11 @@ export default class PlaylistSelectView extends Component {
       dataSource: this.state.dataSource.cloneWithRows(mydata),
       playlistData: mydata,
       page: page + 1
+    }, () => {
+      if (typeof callback === "function") {
+          callback(true)
+      }
     })
-
-    var imgArr = playlists[0].images
-    var playlistImage = 'https://facebook.github.io/react/img/logo_og.png'
-
-    if(imgArr.length){
-      playlistImage = imgArr[0].url
-    }else if(typeof(this.props.currentUser.images) !== 'undefined' && this.props.currentUser.images.length){
-      playlistImage = this.props.currentUser.images[0].url
-    }
 
   }
 
@@ -113,12 +108,14 @@ export default class PlaylistSelectView extends Component {
       this.setState({
         total: responseJson.total,
         userPlaylists: merge
-      }, function(){
+      }, () => {
         AsyncStorage.setItem( '@GmixrStore:playlistsTotal', JSON.stringify(responseJson.total) )
         AsyncStorage.setItem( '@GmixrStore:playlists', JSON.stringify(merge) )
 
-        this._processPlaylists(playlists)
-        this._fetchPlaylists(bearer)
+        this._processPlaylists(playlists, () => {
+          this._fetchPlaylists(bearer)
+        })
+        
       })
 
 
@@ -144,7 +141,6 @@ export default class PlaylistSelectView extends Component {
         this._processPlaylists(JSON.parse(res))
 
       }else{
-
 
         SpotifyAuth.getToken((result)=>{
 
@@ -197,6 +193,10 @@ export default class PlaylistSelectView extends Component {
       if(res){
         this.setState({
           contentOffsetY: parseInt(res)
+        })
+      }else{
+        this.setState({
+          contentOffsetY: 0
         })
       }
     })

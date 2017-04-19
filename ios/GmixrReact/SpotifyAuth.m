@@ -61,7 +61,7 @@ RCT_EXPORT_METHOD(setNotifications)
 //Start Auth process
 RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
 {
-  
+  NSLog(@"Hello!!");
   NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
   
   NSArray *requestedScopes = @[@"streaming", @"playlist-read-private", @"playlist-modify-public", @"user-follow-modify", @"user-follow-read", @"user-library-read", @"user-library-modify", @"user-read-private", @"user-read-birthdate", @"user-read-email", @"user-read-playback-state"];
@@ -109,10 +109,31 @@ RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
 // Notification to update session
 - (void)sessionUpdatedNotification:(NSNotification *)notification
 {
+  
+  
+  NSLog(@"notification: %@", notification.object);
+  if([notification.object  isEqual: @"gmixr://callback/?error=access_denied"]){
+
+    NSHTTPCookieStorage *storage = [NSHTTPCookieStorage sharedHTTPCookieStorage];
+    for (NSHTTPCookie *cookie in [storage cookies]) {
+      if ([cookie.domain rangeOfString:@"spotify."].length > 0 ||
+          [cookie.domain rangeOfString:@"facebook."].length > 0) {
+        [storage deleteCookie:cookie];
+      }
+    }
+    [[NSUserDefaults standardUserDefaults] synchronize];
+
+//    [self closeSession];
+    return;
+  }
+  
   SPTAuth *auth = [SPTAuth defaultInstance];
 
   AppDelegate *delegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-  [delegate.window.rootViewController dismissViewControllerAnimated:YES completion:nil];
+  [delegate.window.rootViewController dismissViewControllerAnimated:YES completion:^(void){
+    NSLog(@"sessionUpdated dismissViewControllerAnimated");
+    
+  }];
   
   
   if (auth.session && [auth.session isValid]) {
@@ -126,11 +147,15 @@ RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
     
   } else {
     NSLog(@"*** Failed to log in");
+    NSDictionary* userInfo = @{@"object": @"loginFailed"};
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"EventFromSpotify" object:nil userInfo:userInfo];
   }
 }
 
 - (void)showPlayer
 {
+  
+  
    NSDictionary* userInfo = @{@"object": @"showPlayer"};
    [[NSNotificationCenter defaultCenter] postNotificationName:@"EventFromSpotify" object:nil userInfo:userInfo];
 }
@@ -191,7 +216,13 @@ RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
     
     self.authViewController = [self authViewControllerWithURL:[auth spotifyWebAuthenticationURL]];
     AppDelegate *delegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    [delegate.window.rootViewController presentViewController: self.authViewController animated:YES completion:nil];
+    [delegate.window.rootViewController presentViewController: self.authViewController animated:YES completion:^(void){
+      NSLog(@"openLoginPage dismissViewControllerAnimated");
+      NSDictionary* userInfo = @{@"object": @"closedLoginPage"};
+      [[NSNotificationCenter defaultCenter] postNotificationName:@"EventFromSpotify" object:nil userInfo:userInfo];
+      
+    }];
+
     
   }
   
@@ -238,7 +269,11 @@ RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
     }
     
     AppDelegate *delegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    [delegate.window.rootViewController dismissViewControllerAnimated:YES completion:nil];
+    [delegate.window.rootViewController dismissViewControllerAnimated:YES completion:^(void){
+      NSLog(@"renewToken dismissViewControllerAnimated");
+      
+    }];
+
     
     [self showPlayer];
     
@@ -306,6 +341,7 @@ RCT_EXPORT_METHOD(getStatus:(RCTResponseSenderBlock)block)
   SPTAuth *auth = [SPTAuth defaultInstance];
   // Uncomment to turn off native/SSO/flip-flop login flow
   //auth.allowNativeLogin = NO;
+  
   
   // Check if we have a token at all
   if (auth.session == nil) {
@@ -475,13 +511,16 @@ RCT_EXPORT_METHOD(targetBitrate:(RCTResponseSenderBlock)block)
 //Logout from Spotify
 RCT_EXPORT_METHOD(logout)
 {
-  [self closeSession];
+  NSLog(@"LOGOUT!!");
+  
   
   SPTAudioStreamingController *sharedIn = [SPTAudioStreamingController sharedInstance];
   SpotifyAuth *sharedManager = [SpotifyAuth sharedManager];
   [sharedManager setSession:nil];
   
   [sharedIn logout];
+  
+  [self closeSession];
 }
 
 //Set playback volume to the given level. Volume is a value between `0.0` and `1.0`.
@@ -651,7 +690,14 @@ RCT_EXPORT_METHOD(componentWillUnmount:(RCTResponseSenderBlock)block)
   block(@[@"NSNotificationCenter LoggedIn removed"]);
 }
 
+RCT_EXPORT_METHOD(getFreeSpace:(RCTResponseSenderBlock)block)
+{
+  NSDictionary *atDict = [[NSFileManager defaultManager] attributesOfFileSystemForPath:@"/" error:NULL];
+  unsigned freeSpace = [[atDict objectForKey:NSFileSystemFreeSize] unsignedIntValue];
+  NSString *space = [NSString stringWithFormat:@"%umb", (freeSpace/1024)/1024];
 
+  block(@[space]);
+}
 /////////////////////////////////
 ////  END SPTAudioStreamingController
 /////////////////////////////////
@@ -775,13 +821,17 @@ RCT_EXPORT_METHOD(performSearchWithQuery:(NSString *)searchQuery
   NSLog(@"didReceiveError: %zd %@", error.code, error.localizedDescription);
   
   if (error.code == SPErrorNeedsPremium) {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Premium account required" message:@"Premium account is required to showcase application functionality. Please login using premium account." preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action){
-      [self closeSession];
-    }]];
+//    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Premium account required" message:@"Premium account is required to showcase application functionality. Please login using premium account." preferredStyle:UIAlertControllerStyleAlert];
+//    [alert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action){
+//      [self closeSession];
+//    }]];
+    
+    
     
     NSDictionary* userInfo = @{@"object": @"SPErrorNeedsPremium"};
     [[NSNotificationCenter defaultCenter] postNotificationName:@"EventFromSpotify" object:nil userInfo:userInfo];
+    
+    [self closeSession];
     
   }
   
@@ -872,7 +922,10 @@ RCT_EXPORT_METHOD(performSearchWithQuery:(NSString *)searchQuery
       [self.player loginWithAccessToken:auth.session.accessToken];
       
       AppDelegate *delegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-      [delegate.window.rootViewController dismissViewControllerAnimated:YES completion:nil];
+      [delegate.window.rootViewController dismissViewControllerAnimated:YES completion:^(void){
+        NSLog(@"handleNewSession dismissViewControllerAnimated");
+        
+      }];
       
     } else {
       self.player = nil;
@@ -891,6 +944,17 @@ RCT_EXPORT_METHOD(performSearchWithQuery:(NSString *)searchQuery
     [alert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:nil]];
     //[self presentViewController:alert animated:YES completion:nil];
   }
+  
+  NSHTTPCookieStorage *storage = [NSHTTPCookieStorage sharedHTTPCookieStorage];
+  for (NSHTTPCookie *cookie in [storage cookies]) {
+    if ([cookie.domain rangeOfString:@"spotify."].length > 0 ||
+        [cookie.domain rangeOfString:@"facebook."].length > 0) {
+      [storage deleteCookie:cookie];
+    }
+  }
+  [[NSUserDefaults standardUserDefaults] synchronize];
+  
+  self.player = nil;
   [SPTAuth defaultInstance].session = nil;
 }
 

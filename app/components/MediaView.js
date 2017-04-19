@@ -10,7 +10,8 @@ import React, { Component } from 'react'
 import {
   Image,
   Text,
-  View
+  View,
+  TouchableHighlight
 } from 'react-native'
 
 
@@ -23,10 +24,17 @@ export default class MediaView extends Component {
 
   }
 
+  _setView(){
+    this.props._setView(!this.props.mini)
+  }
+
   render() {
 
     return (
 		<View style={[styles.video, {height: this.props.vidHeight}]}>
+		 <TouchableHighlight onPress={() => this._setView()} activeOpacity={1} underlayColor="transparent">
+
+          <View>
 			{(this.props.source != '') ? (
 				<Image 
 				  style={{width: this.props.layoutProps.width, height: this.props.vidHeight}}
@@ -40,6 +48,8 @@ export default class MediaView extends Component {
 			)}
 
 			<View style={[styles.loader, {width:this.props.loaderWidth, opacity: this.props.loaderOpacity}]}></View>
+			</View>
+			</TouchableHighlight>
 		</View>
     )
   }

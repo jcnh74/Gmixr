@@ -57,6 +57,7 @@ import SettingsView from './components/SettingsView'
 // Native Modules
 const SpotifyAuth = NativeModules.SpotifyAuth
 const myModuleEvt = new NativeEventEmitter(NativeModules.EventManager)
+const eventReminder = null
 
 // Settings
 const {height, width} = Dimensions.get('window')
@@ -245,6 +246,7 @@ export default class PlayerView extends Component {
     for(i = 0; i < imagearr.length; i++){
 
       this.state.tasks[i] = RNFetchBlob.config({
+        session : 'Gmixr',
         fileCache : true,
         appendExt : 'gif'
       }).fetch('GET', imagearr[i])
@@ -310,11 +312,10 @@ export default class PlayerView extends Component {
       
       if(responseJson.product == "open"){
         
-        let keys = ['@GmixrStore:token', '@GmixrStore:firstVisit'];
-        AsyncStorage.multiRemove(keys, (err) => {
-          SpotifyAuth.logout()
-          // Actions.login()
-        })
+        AsyncStorage.removeItem('@GmixrStore:token');
+        AsyncStorage.removeItem('@GmixrStore:firstVisit');
+        Actions.login({userProduct:'open', notice:'Please Login with a Spotify Premium Account'})
+
 
       }else if(responseJson.product == "premium"){
         this.setState({
@@ -322,6 +323,11 @@ export default class PlayerView extends Component {
           userAquired:true
         })
         this.eventEmitter.emit('userAquired')
+      }else{
+
+        AsyncStorage.removeItem('@GmixrStore:token');
+        AsyncStorage.removeItem('@GmixrStore:firstVisit');
+        Actions.login({notice:'Please Login with a Spotify Premium Account'})
       }
 
     })
@@ -376,7 +382,7 @@ export default class PlayerView extends Component {
 
 
   // Update state of current track, clear Gifs and request new ones.
-  _setTrack(currentURI){
+  _setTrack(currentURI, callback){
     
     this._clearGifs()
 
@@ -448,15 +454,22 @@ export default class PlayerView extends Component {
             trackID: responseJson.id,
             duration: responseJson.duration_ms
           }
+        }, () => {
+          if (typeof callback === "function") {
+
+
+              var currentTerms = []
+              currentTerms[0] = responseJson.artists[0].name
+              currentTerms[1] = responseJson.name
+
+              this._getAudioFeatures(responseJson.id, result)
+
+              this._getGifs(responseJson.artists[0].name + ', '+ responseJson.name)
+
+
+              callback(true)
+          }
         })
-
-        var currentTerms = []
-        currentTerms[0] = responseJson.artists[0].name
-        currentTerms[1] = responseJson.name
-
-        this._getAudioFeatures(responseJson.id, result)
-
-        this._getGifs([responseJson.artists[0].name, responseJson.name])
         
       })
       .catch((err) => {
@@ -842,10 +855,10 @@ export default class PlayerView extends Component {
       playlistInfo = 'by ' + this.state.currentPlayItem.owner + ' · ' + this.state.currentPlayItem.total + ' songs'
     }
 
-    var textTerms = ''
-    for(i = 0; i < this.state.currentGiphyTerms.length; i++){
-      textTerms += this.state.currentGiphyTerms[i] + ' '
-    }
+    // var textTerms = ''
+    // for(i = 0; i < this.state.currentGiphyTerms.length; i++){
+    //   textTerms += this.state.currentGiphyTerms[i] + ' '
+    // }
 
     return (
       <View style={styles.container}>
@@ -856,7 +869,9 @@ export default class PlayerView extends Component {
             source={(this.state.isPlaying && this.state.currentPlayItemGif != '') ? { uri: this.state.currentPlayItemGif } : defaultImage}
             loaderWidth={loaderWidth}
             loaderOpacity={loaderOpacity}
-            vidHeight={vidHeight} />
+            vidHeight={vidHeight}
+            mini={this.state.showListView}
+            _setView={(bool) => this._setView(bool)} />
           <View style={[styles.controlWrap, {width: this.state.layoutProps.width, position: (this.state.layoutProps.orientation == 'landscape') ? 'absolute' : 'relative', opacity: (this.state.layoutProps.orientation == 'landscape') ? 0 : 1}]}>
             <BlurImage 
               style={styles.backgroundImage}
@@ -1033,7 +1048,7 @@ export default class PlayerView extends Component {
 
     var url = Linking.getInitialURL().then((url) => {
       if (url) {
-        console.log('Initial url is: ' + url);
+        //console.log('Initial url is: ' + url);
         var event = {url: url}
         this.eventEmitter.addListener('loggedIn', () => this._handleOpenURL(event), this)
       }
@@ -1043,17 +1058,19 @@ export default class PlayerView extends Component {
     // Add Listeners from IOS
     Orientation.addOrientationListener(this._orientationDidChange)
 
-    myModuleEvt.addListener('EventReminder', (data) => {
+    eventReminder = myModuleEvt.addListener('EventReminder', (data) => {
 
       var message = data.object[0]
-      console.log(data.object)
+      //console.log(data.object)
       if(message.includes("didStartPlayingTrack")){
 
         this._cancelGetData()
         
         var trackURI = message.replace("didStartPlayingTrack: ", "")
-        this._setTrack(trackURI, false)
-        this._play()
+        this._setTrack(trackURI, () => {
+          this._play()
+        })
+        
 
 
         // Not sure if I can pass the Native Emiiter?
@@ -1068,10 +1085,11 @@ export default class PlayerView extends Component {
         
         var trackURI = message.replace("didChangeMetadata: ", "")
 
-      }else if(message == "didReceiveError: Spotify Premium Required"){
-
-
       }else if(data.object == "didChangePlaybackStatus"){
+
+      }else if(data.object == "SPErrorNeedsPremium"){
+
+        //console.log('PlayerView SPErrorNeedsPremium')
 
       }else if(data.object == "audioStreamingDidLogin"){
 
@@ -1086,7 +1104,9 @@ export default class PlayerView extends Component {
     // Cleanup and Timers and Listeners
     this._clearTimers()
 
+    eventReminder.remove()
     myModuleEvt.removeAllListeners('EventReminder')
+
 
     Orientation.getOrientation((err,orientation)=> { })
     Orientation.removeOrientationListener(this._orientationDidChange)

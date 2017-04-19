@@ -42,7 +42,7 @@ export default class AlbumSelectView extends Component {
     }
   }
 
-  _processAlbums(tracks){
+  _processAlbums(tracks, callback){
 
     var mydata = this.state.albumsData
 
@@ -83,6 +83,10 @@ export default class AlbumSelectView extends Component {
       albumsData: mydata,
       dataSource: this.state.dataSource.cloneWithRows(mydata),
       page: page + 1
+    }, () => {
+      if (typeof callback === "function") {
+          callback(true)
+      }
     })
  
 
@@ -106,6 +110,10 @@ export default class AlbumSelectView extends Component {
       if(responseJson.error){
         return
       }
+      
+      if( ( this.state.page * 50 )  >= responseJson.total ){
+        return
+      }
 
       var tracks = responseJson.items
       var merge = userAlbums.concat(tracks)
@@ -118,9 +126,10 @@ export default class AlbumSelectView extends Component {
         AsyncStorage.setItem( '@GmixrStore:tracksTotal', JSON.stringify(responseJson.total) )
         AsyncStorage.setItem( '@GmixrStore:tracks', JSON.stringify(merge) )
 
-        this._processAlbums(merge)
-        this._fetchAlbums(bearer)
-
+        this._processAlbums(merge, () => {
+          this._fetchAlbums(bearer)
+        })
+        
       })
 
 
@@ -200,6 +209,10 @@ export default class AlbumSelectView extends Component {
       if(res){
         this.setState({
           contentOffsetY: parseInt(res)
+        })
+      }else{
+        this.setState({
+          contentOffsetY: 0
         })
       }
     })

@@ -43,7 +43,7 @@ export default class SongSelectView extends Component {
     }
   }
 
-  _processTracks(tracks){
+  _processTracks(tracks, callback){
 
     var mydata = this.state.tracksData
     for(i = 0; i < tracks.length; i++){
@@ -58,6 +58,10 @@ export default class SongSelectView extends Component {
       tracksData: mydata,
       dataSource: this.state.dataSource.cloneWithRows(mydata),
       page: page + 1
+    }, () => {
+      if (typeof callback === "function") {
+          callback(true)
+      }
     })
 
 
@@ -98,8 +102,10 @@ export default class SongSelectView extends Component {
         AsyncStorage.setItem( '@GmixrStore:tracksTotal', JSON.stringify(responseJson.total) )
         AsyncStorage.setItem( '@GmixrStore:tracks', JSON.stringify(merge) )
 
-        this._processTracks(tracks)
-        this._fetchTracks(bearer)
+        this._processTracks(tracks, () => {
+          this._fetchTracks(bearer)
+        })
+        
       })
 
       
@@ -177,6 +183,10 @@ export default class SongSelectView extends Component {
       if(res){
         this.setState({
           contentOffsetY: parseInt(res)
+        })
+      }else{
+        this.setState({
+          contentOffsetY: 0
         })
       }
     })

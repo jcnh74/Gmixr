@@ -68,6 +68,10 @@
   NSLog(@"*** url: %@", url);
   SPTAuth *auth = [SPTAuth defaultInstance];
   
+//  if(url == @"gmixr://callback/?error=access_denied"){
+//    return
+//  }
+  
   SPTAuthCallback authCallback = ^(NSError *error, SPTSession *session) {
     // This is the callback that'll be triggered when auth is completed (or fails).
     NSLog(@"authCallback");
