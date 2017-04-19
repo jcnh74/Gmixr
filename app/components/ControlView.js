@@ -25,11 +25,14 @@ import {
 } from 'react-native'
 
 import Share, {ShareSheet, Button} from 'react-native-share'
+import * as Animatable from 'react-native-animatable'
+
 import EventEmitter from 'EventEmitter'
 
 import moment from 'moment'
 
 const SpotifyAuth = NativeModules.SpotifyAuth
+
 
 import Marquee from '@remobile/react-native-marquee'
 import MarqueeLabel from '@remobile/react-native-marquee-label'
@@ -136,13 +139,14 @@ export default class ControlView extends Component {
 
 
   _setInput(active){
-    if(this.props.currentTrack.name != ''){
+
       if(active){
         this.refs.Search.focus()
+        console.log('focus')
       }else{ 
         this.refs.Search.blur()
+        console.log('blur')
       }
-    }
     this.setState({
       inputActive: active
     })
@@ -383,19 +387,25 @@ export default class ControlView extends Component {
         </View>
       ) : (
         <View>
-          <TextInput
-              ref='Search'
-              spellCheck={false}
-              style={[styles.termInput, {height: (this.state.inputActive) ? 40 : 0, padding:(this.state.inputActive) ? 4 : 0, width: width }]}
-              onFocus={() => this._setInput(true)}
-              onBlur={() => this._setInput(false)}
-              blurOnSubmit={true}
-              keyboardType={'ascii-capable'}
-              onChangeText={(text) => this._setState({textTerms: text})}
-              onSubmitEditing={(event) => this._newGifRequest(event.nativeEvent.text)}
-              value={this.props.textTerms}
-              removeClippedSubviews={true}
-            />
+          <Animatable.View transition="height" style={[styles.termInput, {height: (this.state.inputActive) ? 48 : 0, width: width }]}>
+            <View>
+              <Image style={{position:'absolute', top:12, right:20, width:90, height:24}} source={require('../../assets/giphy-large.png')} />
+              <TextInput
+                  ref='Search'
+                  spellCheck={false}
+                  style={[styles.searchInput, {width: width - 8 - 90 - 8 }]}
+                  onFocus={() => this._setInput(true)}
+                  onBlur={() => this._setInput(false)}
+                  blurOnSubmit={true}
+                  keyboardType={'ascii-capable'}
+                  onChangeText={(text) => this._setState({textTerms: text})}
+                  onSubmitEditing={(event) => this._newGifRequest(event.nativeEvent.text)}
+                  value={this.props.textTerms}
+                  removeClippedSubviews={true}
+                />
+            </View>
+          </Animatable.View>
+
           <View style={styles.flexRow}>
 
 
@@ -419,12 +429,9 @@ export default class ControlView extends Component {
                   {this.props.currentTrack.artistName}
               </Text>
             </View>
-            <TouchableHighlight style={styles.smallerButton} onPress={() => this._setInput((this.state.inputActive) ? false : true)} activeOpacity={1} underlayColor="transparent">
-              {(this.state.inputActive) ? (
-                 <IOIcon name="md-add" backgroundColor="transparent" color={green} size={30} />
-              ) : (
-                 <IOIcon name="md-add" backgroundColor="transparent" color="white" size={30} />
-              )}
+            <TouchableHighlight style={[styles.smallerButton, {marginRight:10}]} onPress={() => this._setInput((this.state.inputActive) ? false : true)} activeOpacity={1} underlayColor="transparent">
+              
+              <SLIcon name="picture" backgroundColor="transparent" color="white" size={24} />
             </TouchableHighlight> 
           </View>
           <View style={{flex:1, alignItems: 'center', justifyContent:'center'}}>

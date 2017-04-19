@@ -79,7 +79,7 @@ module.exports = StyleSheet.create({
     bottom:0,
     left:0,
     width:0,
-    height:6,
+    height:4,
     alignSelf:'flex-start',
     backgroundColor: blue
   },
@@ -92,17 +92,21 @@ module.exports = StyleSheet.create({
   },
   termInput: {
     padding:0,
-    color:'white',
     height: 0, 
     overflow: 'hidden',
     backgroundColor:'rgba(0,0,0,0.2)'
   },
   searchInput: {
-    padding:4,
+    position:'absolute',
+    top:0,
+    left:0,
+    right:0,
+    padding:10,
     color:'white',
-    height: 40, 
-    overflow: 'hidden',
-    backgroundColor:'rgba(0,0,0,0.2)'    
+    height: 48,
+    fontSize: 16,
+    lineHeight:24,
+
   },
   controls: {
     flex: 1,
@@ -156,6 +160,16 @@ module.exports = StyleSheet.create({
     alignItems: 'center',
     width:48,
     height:48,
+    marginTop:12,
+    marginBottom:12,
+    marginLeft:0,
+    marginRight:0,
+  },
+  giphyButton:{
+    justifyContent: 'center',
+    alignItems: 'center',
+    width:120,
+    height:32,
     marginTop:12,
     marginBottom:12,
     marginLeft:0,
@@ -223,7 +237,7 @@ module.exports = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
     width:width - 100,
-    color:'#FFF',
+    color:'white',
   },
   marqueeLabelMini: {
     flexGrow: 1,
@@ -232,7 +246,7 @@ module.exports = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
     width:width - 100,
-    color:'#FFF',
+    color:'white',
   },
   marqueeText: {
     flexGrow: 1,

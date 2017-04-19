@@ -383,6 +383,8 @@ export default class PlayerView extends Component {
 
   // Update state of current track, clear Gifs and request new ones.
   _setTrack(currentURI, callback){
+
+    console.log("_setTrack start")
     
     this._clearGifs()
 
@@ -443,7 +445,10 @@ export default class PlayerView extends Component {
       .then((responseJson) => {
 
         //console.log(responseJson)
-        
+        var currentTerms = []
+        currentTerms[0] = responseJson.artists[0].name
+        currentTerms[1] = responseJson.name
+
         this.setState({
           currentTrack: {
             name: responseJson.name,
@@ -456,17 +461,9 @@ export default class PlayerView extends Component {
           }
         }, () => {
           if (typeof callback === "function") {
-
-
-              var currentTerms = []
-              currentTerms[0] = responseJson.artists[0].name
-              currentTerms[1] = responseJson.name
-
+              console.log("_setTrack called")
               this._getAudioFeatures(responseJson.id, result)
-
               this._getGifs(responseJson.artists[0].name + ', '+ responseJson.name)
-
-
               callback(true)
           }
         })
@@ -611,30 +608,14 @@ export default class PlayerView extends Component {
 
     AsyncStorage.getItem('@GmixrStore:'+this.state.currentTrack.trackID, (err, res) => {
       if(res){
-        // var termArray = res
-        // var termString = ''
-        // for(i = 0; i < termArray.length; i++){
-        //   var space = ''
-        //   if(i > 0){
-        //     space = ', '
-        //   }
-        //   termString += space + termArray[i]
-
-        // }
+        console.log(terms)
         this.setState({loadingGifs: true, textTerms: res})
         term = encodeURIComponent(res)
         var gifUrls = []
 
       }else{
 
-        // var termString = ''
-        // for(i = 0; i < terms.length; i++){
-        //   var space = ''
-        //   if(i > 0){
-        //     space = ', '
-        //   }
-        //   termString += space + terms[i]
-        // }
+        console.log(terms)
 
         this.setState({loadingGifs: true, textTerms: terms})
         term = encodeURIComponent(terms)
@@ -1041,11 +1022,12 @@ export default class PlayerView extends Component {
   }
 
   componentDidMount() {
+
     this._getUser()
 
     Linking.addEventListener('url', this._handleOpenURL);
 
-
+    // Incoming Deep Link request
     var url = Linking.getInitialURL().then((url) => {
       if (url) {
         //console.log('Initial url is: ' + url);
@@ -1067,7 +1049,9 @@ export default class PlayerView extends Component {
         this._cancelGetData()
         
         var trackURI = message.replace("didStartPlayingTrack: ", "")
+        console.log("_setTrack init")
         this._setTrack(trackURI, () => {
+          console.log("_setTrack callback")
           this._play()
         })
         

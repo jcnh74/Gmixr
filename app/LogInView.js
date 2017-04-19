@@ -196,7 +196,7 @@ export default class LogInView extends Component {
   }
   componentWillUnmount() {
     eventReminder.remove()
-    myModuleEvt.removeAllListeners('EventReminder')
+    //myModuleEvt.removeAllListeners('EventReminder')
     //myModuleEvt.removeAllListeners('EventReminder')
 
   }

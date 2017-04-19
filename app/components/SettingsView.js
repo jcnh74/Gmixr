@@ -283,7 +283,7 @@ export default class SettingsView extends Component {
 
   componentWillUnmount() {
     eventReminder.remove()
-    myModuleEvt.removeAllListeners('EventReminder')
+    //myModuleEvt.removeEventListener('EventReminder')
     //myModuleEvt.removeAllListeners('EventReminder')
 
   }

@@ -16,6 +16,8 @@ import {
   Dimensions
 } from 'react-native'
 
+import FAIcon from 'react-native-vector-icons/FontAwesome'
+
 // Components
 import TrackRow from './TrackRow'
 import ArtistRow from './ArtistRow'
@@ -248,21 +250,30 @@ export default class SearchSelectView extends Component {
 
     return (
       <View style={{flexDirection: 'column'}}>
-        <TextInput
-          ref='Search'
-          spellCheck={false}
-          style={[styles.searchInput, {flex:-1}]}
-          onFocus={() => this._setInput(true)}
-          onBlur={() => this._setInput(false)}
-          blurOnSubmit={true}
-          keyboardType={'ascii-capable'}
-          onChangeText={(text) => this._setState({textTerms: text})}
-          onSubmitEditing={(event) => this._newSpotifyRequest(event.nativeEvent.text)}
-          value={this.state.textTerms}
-          removeClippedSubviews={true}
-        />
+        <View style={[styles.termInput, {height: 48, width: width }]}>
+          <View>
+            <View style={{position:'absolute', top:8, right:14, width:32, height:32, backgroundColor: 'transparent',}} >
+              <FAIcon name="spotify" backgroundColor="transparent" color="#1ED760" size={30} />
+            </View>
+            <TextInput
+              ref='Search'
+              spellCheck={false}
+              style={[styles.searchInput, {width: width - 8 - 32 - 8 }]}
+              onFocus={() => this._setInput(true)}
+              onBlur={() => this._setInput(false)}
+              blurOnSubmit={true}
+              keyboardType={'ascii-capable'}
+              onChangeText={(text) => this._setState({textTerms: text})}
+              onSubmitEditing={(event) => this._newSpotifyRequest(event.nativeEvent.text)}
+              value={this.state.textTerms}
+              removeClippedSubviews={true}
+              placeholder={'Search Spotify'}
+              placeholderTextColor="rgb(160,160,160)"
+            />
+          </View>
+        </View>
     		<ListView
-          style={[styles.listView, {top: 40, height: height - this.props.vidHeight - 94 - 40 }]}
+          style={[styles.listView, {top: 48, height: height - this.props.vidHeight - 94 - 40 }]}
           dataSource={this.state.dataSource}
           renderRow={(rowData, sectionID, rowID) => {
             switch (rowData.type) {

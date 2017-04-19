@@ -14,6 +14,8 @@ import {
   TouchableHighlight
 } from 'react-native'
 
+import * as Animatable from 'react-native-animatable'
+
 
 var styles = require('../style');
 
