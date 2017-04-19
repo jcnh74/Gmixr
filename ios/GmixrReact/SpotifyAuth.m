@@ -154,10 +154,17 @@ RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
 
 - (void)showPlayer
 {
-  
-  
-   NSDictionary* userInfo = @{@"object": @"showPlayer"};
-   [[NSNotificationCenter defaultCenter] postNotificationName:@"EventFromSpotify" object:nil userInfo:userInfo];
+  SPTAuth *auth = [SPTAuth defaultInstance];
+  if (auth.session && [auth.session isValid]) {
+    NSString *token = [auth.session accessToken];
+    
+    NSLog(@"The Token: %@",token);
+    
+    NSString *showPlayer = [NSString stringWithFormat:@"showPlayer:%@", token];
+    NSLog(@"showPlayer Object: %@",showPlayer);
+     NSDictionary* userInfo = @{@"object": @[showPlayer]};
+     [[NSNotificationCenter defaultCenter] postNotificationName:@"EventFromSpotify" object:nil userInfo:userInfo];
+  }
 }
 
 
@@ -248,8 +255,11 @@ RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
       NSLog(@"*** Error renewing session: %@", error);
       return;
     }
-
-    [self showPlayer];
+    
+    NSLog(@"renewTokenAndShowPlayer");
+    
+    [self handleNewSession];
+    //[self showPlayer];
   }];
 }
 
@@ -877,8 +887,20 @@ RCT_EXPORT_METHOD(performSearchWithQuery:(NSString *)searchQuery
   NSLog(@"audioStreamingDidLogin");
   self.loggedIn = YES;
   
-  NSDictionary* userInfo = @{@"object": @"audioStreamingDidLogin"};
-  [[NSNotificationCenter defaultCenter] postNotificationName:@"EventFromSpotify" object:nil userInfo:userInfo];
+  SPTAuth *auth = [SPTAuth defaultInstance];
+  if (auth.session && [auth.session isValid]) {
+    NSString *token = [auth.session accessToken];
+    
+    NSLog(@"The Token: %@",token);
+    
+    NSString *didLogin = [NSString stringWithFormat:@"audioStreamingDidLogin:%@", token];
+    NSLog(@"didLogin: %@",didLogin);
+    NSDictionary* userInfo = @{@"object": didLogin};
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"EventFromSpotify" object:nil userInfo:userInfo];
+  }
+  
+//  NSDictionary* userInfo = @{@"object": @"audioStreamingDidLogin"};
+//  [[NSNotificationCenter defaultCenter] postNotificationName:@"EventFromSpotify" object:nil userInfo:userInfo];
 }
 
 /////////////////////////////////

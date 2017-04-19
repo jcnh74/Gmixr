@@ -326,7 +326,7 @@ export default class PlayerView extends Component {
       }else{
 
         AsyncStorage.removeItem('@GmixrStore:token');
-        AsyncStorage.removeItem('@GmixrStore:firstVisit');
+        //AsyncStorage.removeItem('@GmixrStore:firstVisit');
         Actions.login({notice:'Please Login with a Spotify Premium Account'})
       }
 
@@ -358,6 +358,8 @@ export default class PlayerView extends Component {
   _getMusic() {
 
     var currentPlayItem = this.state.currentPlayItem.playitem
+
+
 
     SpotifyAuth.playSpotifyURI(currentPlayItem.uri, 0, 0, (error)=>{
       if(error){
@@ -391,6 +393,8 @@ export default class PlayerView extends Component {
     var tracks = this.state.tracks
 
     var currentTrackID = currentURI.replace("spotify:track:", "")
+
+    AsyncStorage.setItem('@GmixrStore:savedTrackURI',currentURI)
 
     AsyncStorage.getItem('@GmixrStore:token', (err, result) => {
 
@@ -1026,32 +1030,45 @@ export default class PlayerView extends Component {
     this._getUser()
 
     Linking.addEventListener('url', this._handleOpenURL);
+    this.setState({isLoggedIn:true})
+
+
 
     // Incoming Deep Link request
     var url = Linking.getInitialURL().then((url) => {
       if (url) {
         //console.log('Initial url is: ' + url);
+        
         var event = {url: url}
-        this.eventEmitter.addListener('loggedIn', () => this._handleOpenURL(event), this)
+        this._handleOpenURL(event)
+
+        //this.eventEmitter.addListener('loggedIn', () => this._handleOpenURL(event), this)
+      }else{
+        console.log('Linking')
+        console.log(url)
+        this._handleSavedTrack()
+        //this.eventEmitter.addListener('setTrack', () => this._handleSavedTrack(event), this)
       }
-    }).catch(err => console.error('An error occurred', err));
+    }).catch(err => console.error('An error occurred', err))
 
 
+
+
+
+        // }, this)
     // Add Listeners from IOS
     Orientation.addOrientationListener(this._orientationDidChange)
 
     eventReminder = myModuleEvt.addListener('EventReminder', (data) => {
 
       var message = data.object[0]
-      //console.log(data.object)
+      console.log(data.object)
       if(message.includes("didStartPlayingTrack")){
 
         this._cancelGetData()
         
         var trackURI = message.replace("didStartPlayingTrack: ", "")
-        console.log("_setTrack init")
         this._setTrack(trackURI, () => {
-          console.log("_setTrack callback")
           this._play()
         })
         
@@ -1079,6 +1096,7 @@ export default class PlayerView extends Component {
 
         this.setState({isLoggedIn:true})
         this.eventEmitter.emit('loggedIn')
+        this.eventEmitter.emit('setTrack')
       }
     })
   }
@@ -1144,11 +1162,39 @@ export default class PlayerView extends Component {
         
       })
     }
+  }
 
+  _handleSavedTrack(){
 
+    AsyncStorage.getItem('@GmixrStore:savedTrackURI', (err, res) => {
+      //this._setTrack(res, () => {
 
-    //gmixr://gmixr.com/?uri=spotify:track:3SfPxUOoqIyXZrZou9R1WG&terms=80s%20movies
-    console.log(event.url);
+        if(this.state.isLoggedIn == true && res){
+          SpotifyAuth.playSpotifyURI(res, 0, 0, (error)=>{
+            this._stop()
+            if(error){
+              console.log(error)
+            }
+            SpotifyAuth.isRepeating((response)=>{
+              this.setState({
+                isRepeating: response
+              })
+            })
+            SpotifyAuth.isShuffling((response)=>{
+              this.setState({
+                isShuffling: response
+              })
+            })
+            this.setState({
+              isPlaying: true,
+            })
+            
+          })
+        }
+
+      //})
+    })
+
   }
 }
 

@@ -49,7 +49,7 @@ export default class MediaView extends Component {
 				/>
 			)}
 
-			<View style={[styles.loader, {width:this.props.loaderWidth, opacity: this.props.loaderOpacity}]}></View>
+			<Animatable.View style={[styles.loader, {width:this.props.loaderWidth, opacity: this.props.loaderOpacity}]}></Animatable.View>
 			</View>
 			</TouchableHighlight>
 		</View>

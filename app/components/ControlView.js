@@ -389,7 +389,7 @@ export default class ControlView extends Component {
         <View>
           <Animatable.View transition="height" style={[styles.termInput, {height: (this.state.inputActive) ? 48 : 0, width: width }]}>
             <View>
-              <Image style={{position:'absolute', top:12, right:20, width:90, height:24}} source={require('../../assets/giphy-large.png')} />
+              <Image style={{position:'absolute', top:12, right:20, width:92, height:24}} source={require('../../assets/giphy-large.png')} />
               <TextInput
                   ref='Search'
                   spellCheck={false}
@@ -522,6 +522,15 @@ export default class ControlView extends Component {
     this.props.events.addListener('playing', this._startTimers, this)
     this.props.events.addListener('notPlaying', this._clearTimers, this)
 
+    AsyncStorage.getItem('@GmixrStore:savedPercentElapsed', (err, res) => {
+      if(res){
+        this._seekTo(res)
+        // this.setState({
+        //   percentElapsed:res
+        // })
+      }
+    })
+
     //myLocalEvt.addListener('didStopPlaying', this._clearTimers())
   }
 
@@ -532,7 +541,12 @@ export default class ControlView extends Component {
 
   componentWillUnmount() {
 
+    console.log('componentWillUnmount')
+
     // Cleanup and Timers and Listeners
+
+    AsyncStorage.setItem('@GmixrStore:savedPercentElapsed',this.state.percentElapsed)
+
     this._clearTimers()
 
     

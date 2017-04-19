@@ -45,7 +45,7 @@ export default class LogInView extends Component {
     this._loginToSpotify = this._loginToSpotify.bind(this)
 
     this.state = {
-      loggedIn: false,
+      loggedIn: true,
       needpremium: false
     }
   }
@@ -98,10 +98,11 @@ export default class LogInView extends Component {
             />
           </View>
           ) : (
-          <FAIcon.Button name="spotify" backgroundColor="#1ED760" size={32} onPress={this._loginToSpotify}>
-            <Text style={{fontSize:18, color:'white'}}>Connect Premium Spotify Account</Text>
-          </FAIcon.Button>
-
+          <View>
+            <FAIcon.Button name="spotify" backgroundColor="#1ED760" size={32} onPress={this._loginToSpotify}>
+              <Text style={{fontSize:18, color:'white'}}>Connect Premium Spotify Account</Text>
+            </FAIcon.Button>
+          </View>
           )}
       </View>
     )
@@ -122,7 +123,9 @@ export default class LogInView extends Component {
         console.log('getStatus')
         console.log(result)
         if(result == 'NoSession'){
-
+          this.setState({loggedIn:false}, () => {
+            this.forceUpdate()
+          })
           return
         }
         if(result == 'Token expired'){
@@ -130,16 +133,14 @@ export default class LogInView extends Component {
         // AsyncStorage.removeItem('@GmixrStore:playlists')
         // AsyncStorage.removeItem('@GmixrStore:playlistsTotal')
 
-          SpotifyAuth.renewToken((token)=>{
+          // SpotifyAuth.renewToken((token)=>{
 
-            this._setAsyncToken(token)
+          //   this._setAsyncToken(token)
 
-            this.setState({loggedIn:true}, function(){
-              this.forceUpdate()
-            })
-
-            //Actions.player()
-          })
+          //   this.setState({loggedIn:true}, () => {
+          //     this.forceUpdate()
+          //   })
+          // })
         }
       })
     }
@@ -159,35 +160,45 @@ export default class LogInView extends Component {
       // console.log('EventReminder')
       // console.log(data)
       var message = data.object[0]
-      if(data.object == "showPlayer"){
-        this.setState({loggedIn:true}, function(){
+      var obj = data.object
+      if(message.includes("showPlayer")){
+
+        var tokenObject = message.split(':')
+        this._setAsyncToken(tokenObject[1])
+
+        this.setState({loggedIn:true}, () => {
+          this.forceUpdate()
+        })
+
+        
+      }else if(obj.includes("audioStreamingDidLogin")){
+
+        var tokenObject = obj.split(':')
+        this._setAsyncToken(tokenObject[1])
+
+        this.setState({loggedIn:true}, () => {
           this.forceUpdate()
         })
 
         Actions.player()
-      }else if(data.object == "audioStreamingDidLogin"){
-        this.setState({loggedIn:true}, function(){
-          this.forceUpdate()
-        })
 
-        Actions.player()
       }else if(message == "didReceiveError: Wrong username or password"){
         //console.log("didReceiveError: Wrong username or password")
         SpotifyAuth.logout()
-        this.setState({loggedIn:false}, function(){
+        this.setState({loggedIn:false}, () => {
           this.forceUpdate()
         })
       }else if(data.object == "loginFailed"){
-        this.setState({loggedIn:false}, function(){
+        this.setState({loggedIn:false}, () => {
           this.forceUpdate()
         })
       }else if(data.object == "closedLoginPage"){
-        this.setState({loggedIn:false}, function(){
+        this.setState({loggedIn:false}, () => {
           this.forceUpdate()
         })
       }else if(data.object == "audioStreamingDidLogout"){
         //console.log("audioStreamingDidLogout")
-        this.setState({loggedIn:false}, function(){
+        this.setState({loggedIn:false}, () => {
           this.forceUpdate()
         })
       }
