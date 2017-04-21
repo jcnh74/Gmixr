@@ -84,7 +84,8 @@ module.exports = StyleSheet.create({
     backgroundColor: blue
   },
   flexColumn: {
-    flex: 1
+    flex: 1,
+    flexDirection:'column',
   },
   flexRow: {
     flex: 1,
@@ -107,13 +108,6 @@ module.exports = StyleSheet.create({
     fontSize: 16,
     lineHeight:24,
 
-  },
-  controls: {
-    flex: 1,
-    flexDirection:'row',
-    justifyContent: 'center',
-    paddingTop:40,
-    paddingBottom:40,
   },
   miniControls: {
     flex: 1,
@@ -160,10 +154,7 @@ module.exports = StyleSheet.create({
     alignItems: 'center',
     width:48,
     height:48,
-    marginTop:12,
-    marginBottom:12,
-    marginLeft:0,
-    marginRight:0,
+    padding:10,
   },
   giphyButton:{
     justifyContent: 'center',
@@ -206,11 +197,10 @@ module.exports = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   monoText: {
-    fontSize: 14,
+    fontSize: 12,
     textAlign: 'center',
-    margin: 10,
-    color: 'white',
-    fontFamily: 'Courier New',
+    color: 'rgb(160,160,160)',
+    fontFamily: 'Avenir Next',
     backgroundColor: 'transparent',
 
   },

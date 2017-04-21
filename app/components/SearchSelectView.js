@@ -262,7 +262,7 @@ export default class SearchSelectView extends Component {
               onFocus={() => this._setInput(true)}
               onBlur={() => this._setInput(false)}
               blurOnSubmit={true}
-              keyboardType={'ascii-capable'}
+              keyboardType={'default'}
               onChangeText={(text) => this._setState({textTerms: text})}
               onSubmitEditing={(event) => this._newSpotifyRequest(event.nativeEvent.text)}
               value={this.state.textTerms}
@@ -273,7 +273,7 @@ export default class SearchSelectView extends Component {
           </View>
         </View>
     		<ListView
-          style={[styles.listView, {top: 48, height: height - this.props.vidHeight - 94 - 40 }]}
+          style={[styles.listView, {top: 48, height: height - this.props.vidHeight - 94 - 48 }]}
           dataSource={this.state.dataSource}
           renderRow={(rowData, sectionID, rowID) => {
             switch (rowData.type) {

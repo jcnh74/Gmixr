@@ -117,7 +117,7 @@ export default class SettingsView extends Component {
         this.setState({clearingCache: false})
       })
     })
-  }storeKeys
+  }
 
   render() {
 
@@ -130,65 +130,13 @@ export default class SettingsView extends Component {
         flex: 1,
         flexDirection: 'column',
       }}>
-        <View style={{marginTop: 10, marginBottom: 40}}>
+        <View style={{marginTop: 10, marginBottom: 20}}>
           <Text style={[styles.listTitleText, {width: width, textAlign: 'center'}]} numberOfLines={1}>
             Settings
           </Text>
         </View>
-        <View style={{height:48, width: width, marginBottom:20, flex:-1}}>
-          <TouchableHighlight style={[styles.row]} onPress={this._logout} activeOpacity={1} underlayColor="transparent">
-            <View style={styles.flexRow}>
-              <View style={{marginLeft:8}}>
-                <Text style={[styles.listTitleText, {width: width - 16 - 90 }]} numberOfLines={1}>
-                  {this.props.currentUser.display_name}
-                </Text>
-                <Text style={[styles.listDescText, {width: width - 16 - 90 }]} numberOfLines={1}>
-                  {'Spotify: ' + this.props.currentUser.id}
-                </Text>
-              </View>
-              <View style={{width: 90, height:48, justifyContent: 'center', alignItems: 'center'}}>
-                {(this.state.loggingOut) ? (
-                  <Animatable.View animation="rotate" iterationCount="infinite" >
-                    <IOIcon name="ios-sync"  backgroundColor="transparent" color="white" size={20} />
-                  </Animatable.View>
-                ) : (
-                    <IOIcon name="ios-log-out-outline"  backgroundColor="transparent" color="white" size={20} />
-                )}
-                <Text style={styles.listDescText} numberOfLines={1}>
-                  {(this.state.loggingOut) ? 'Logging Out...' : 'Logout'}
-                </Text>
-              </View>
-            </View>
-          </TouchableHighlight>
-        </View>
-        <View style={{height:48, width: width, marginBottom:20,  flex:-1}}>
-          <TouchableHighlight style={[styles.row]} onPress={this._clearData} activeOpacity={1} underlayColor="transparent">
-
-            <View style={styles.flexRow}>
-              <View style={{marginLeft:8}}>
-                <Text style={[styles.listTitleText, {width: width - 16 - 90 }]} numberOfLines={1}>
-                  Clear Downloaded Data
-                </Text>
-                <Text style={[styles.listDescText, {width: width - 16 - 90 }]} numberOfLines={1}>
-                  {'Free Space: ' + this.state.freespace}
-                </Text>
-              </View>
-              <View style={{width: 90, height:48, justifyContent: 'center', alignItems: 'center'}}>
-                {(this.state.clearingData) ? (
-                  <Animatable.View animation="rotate" iterationCount="infinite" >
-                    <IOIcon name="ios-sync"  backgroundColor="transparent" color="white" size={20} />
-                  </Animatable.View>
-                ) : (
-                  <IOIcon name="md-trash"  backgroundColor="transparent" color="white" size={20} />
-                )}
-                <Text style={styles.listDescText} numberOfLines={1}>
-                  {(this.state.clearingData) ? 'Clearing...' : 'Clear'}
-                </Text>
-              </View>
-            </View>
-          </TouchableHighlight>
-        </View>
-        <View style={{height:48, width: width, marginBottom:20,  flex:-1}}>
+    
+        <View style={{height:48, width: width, marginBottom:10,  flex:-1}}>
           <TouchableHighlight style={[styles.row]} onPress={this._clearPreferences} activeOpacity={1} underlayColor="transparent">
 
             <View style={styles.flexRow}>
@@ -215,7 +163,7 @@ export default class SettingsView extends Component {
             </View>
           </TouchableHighlight>
         </View>
-        <View style={{height:48, width: width, marginBottom:20,  flex:-1}}>
+        <View style={{height:48, width: width, marginBottom:10,  flex:-1}}>
           <TouchableHighlight style={[styles.row]} onPress={this._clearCache} activeOpacity={1} underlayColor="transparent">
 
             <View style={styles.flexRow}>
@@ -237,6 +185,32 @@ export default class SettingsView extends Component {
                 )}
                 <Text style={styles.listDescText} numberOfLines={1}>
                   {(this.state.clearingCache) ? 'Clearing...' : 'Clear'}
+                </Text>
+              </View>
+            </View>
+          </TouchableHighlight>
+        </View>
+        <View style={{height:48, width: width, marginBottom:10, flex:-1}}>
+          <TouchableHighlight style={[styles.row]} onPress={this._logout} activeOpacity={1} underlayColor="transparent">
+            <View style={styles.flexRow}>
+              <View style={{marginLeft:8}}>
+                <Text style={[styles.listTitleText, {width: width - 16 - 90 }]} numberOfLines={1}>
+                  {this.props.currentUser.display_name}
+                </Text>
+                <Text style={[styles.listDescText, {width: width - 16 - 90 }]} numberOfLines={1}>
+                  {'Spotify: ' + this.props.currentUser.id}
+                </Text>
+              </View>
+              <View style={{width: 90, height:48, justifyContent: 'center', alignItems: 'center'}}>
+                {(this.state.loggingOut) ? (
+                  <Animatable.View animation="rotate" iterationCount="infinite" >
+                    <IOIcon name="ios-sync"  backgroundColor="transparent" color="white" size={20} />
+                  </Animatable.View>
+                ) : (
+                    <IOIcon name="ios-log-out-outline"  backgroundColor="transparent" color="white" size={20} />
+                )}
+                <Text style={styles.listDescText} numberOfLines={1}>
+                  {(this.state.loggingOut) ? 'Logging Out...' : 'Logout'}
                 </Text>
               </View>
             </View>

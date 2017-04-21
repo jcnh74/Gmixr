@@ -98,6 +98,14 @@
                       sourceApplication:sourceApplication annotation:annotation];
 }
 
+- (void)applicationDidReceiveMemoryWarning:(UIApplication *)application {
+  
+  NSURLCache * const urlCache = [NSURLCache sharedURLCache];
+  const NSUInteger memoryCapacity = urlCache.memoryCapacity;
+  urlCache.memoryCapacity = 0;
+  urlCache.memoryCapacity = memoryCapacity;
+}
+
 
 @end
 

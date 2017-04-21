@@ -156,8 +156,8 @@ export default class PlayerView extends Component {
       currenttrackFeatures: [],
       currenttrackSaved: false,
       amountLoaded: 0,
-      showListView: true,
-      currentListView: 'playlists',
+      showListView: false,
+      currentListView: 'remove',
       savedListView: 'playlists',
       dataSource: ds.cloneWithRows([]),
       tasks: []
@@ -448,7 +448,7 @@ export default class PlayerView extends Component {
       .then((response) => response.json())
       .then((responseJson) => {
 
-        //console.log(responseJson)
+        console.log(responseJson)
         var currentTerms = []
         currentTerms[0] = responseJson.artists[0].name
         currentTerms[1] = responseJson.name
@@ -764,18 +764,7 @@ export default class PlayerView extends Component {
 
     // If from IOS orientation was updated
   _orientationDidChange(orientation) {
-    if (orientation == 'LANDSCAPE') {
-
-      const {height, width} = Dimensions.get('window')
-
-      const newLayout = {
-        orientation: 'landscape',
-        height: height,
-        width: width
-      }
-      this.setState({ layoutProps: newLayout })
-
-    } else {
+    if (orientation == 'PORTRAIT'){
       
       //do something with portrait layout
       const {height, width} = Dimensions.get('window')
@@ -786,6 +775,16 @@ export default class PlayerView extends Component {
         width: width
       }
       this.setState({ layoutProps: newLayout })
+    } else {
+      const {height, width} = Dimensions.get('window')
+
+      const newLayout = {
+        orientation: 'landscape',
+        height: height,
+        width: width
+      }
+      this.setState({ layoutProps: newLayout })
+
     }
   }
 
@@ -1084,7 +1083,16 @@ export default class PlayerView extends Component {
 
       }else if(message.includes("didChangeMetadata")){
         
-        var trackURI = message.replace("didChangeMetadata: ", "")
+          SpotifyAuth.isRepeating((response)=>{
+            this.setState({
+              isRepeating: response
+            })
+          })
+          SpotifyAuth.isShuffling((response)=>{
+            this.setState({
+              isShuffling: response
+            })
+          })
 
       }else if(data.object == "didChangePlaybackStatus"){
 
@@ -1110,7 +1118,7 @@ export default class PlayerView extends Component {
     myModuleEvt.removeAllListeners('EventReminder')
 
 
-    Orientation.getOrientation((err,orientation)=> { })
+    //Orientation.getOrientation((err,orientation)=> { })
     Orientation.removeOrientationListener(this._orientationDidChange)
 
     Linking.removeEventListener('url', this._handleOpenURL);

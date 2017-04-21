@@ -64,7 +64,7 @@ RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
   NSLog(@"Hello!!");
   NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
   
-  NSArray *requestedScopes = @[@"streaming", @"playlist-read-private", @"playlist-modify-public", @"user-follow-modify", @"user-follow-read", @"user-library-read", @"user-library-modify", @"user-read-private", @"user-read-birthdate", @"user-read-email", @"user-read-playback-state"];
+  NSArray *requestedScopes = @[@"streaming", @"playlist-read-private", @"playlist-read-collaborative", @"playlist-modify-public", @"user-follow-modify", @"user-follow-read", @"user-library-read", @"user-library-modify", @"user-read-top", @"user-read-private", @"user-read-birthdate", @"user-read-email", @"user-read-playback-state"];
   SpotifyAuth *sharedManager = [SpotifyAuth sharedManager];
   //set the sharedManager properties
   [sharedManager setClientID:@kClientId];
@@ -176,6 +176,8 @@ RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
   for (int i = 0; i < [requestedScopes count]; i++) {
     if([requestedScopes[i]  isEqual: @"playlist-read-private"]){
       [scopes addObject: SPTAuthPlaylistReadPrivateScope];
+    } else if([requestedScopes[i]  isEqual: @"playlist-read-collaborative"]){
+      [scopes addObject: SPTAuthPlaylistReadCollaborativeScope];
     } else if([requestedScopes[i]  isEqual: @"playlist-modify-private"]){
       [scopes addObject: SPTAuthPlaylistModifyPrivateScope];
     } else if([requestedScopes[i]  isEqual: @"playlist-modify-public"]){
@@ -190,6 +192,8 @@ RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
       [scopes addObject: SPTAuthUserLibraryModifyScope];
     } else if([requestedScopes[i]  isEqual: @"user-read-private"]){
       [scopes addObject: SPTAuthUserReadPrivateScope];
+    } else if([requestedScopes[i]  isEqual: @"user-read-top"]){
+      [scopes addObject: SPTAuthUserReadTopScope];
     } else if([requestedScopes[i]  isEqual: @"user-read-birthdate"]){
       [scopes addObject: SPTAuthUserReadBirthDateScope];
     } else if([requestedScopes[i]  isEqual: @"user-read-email"]){
@@ -702,6 +706,26 @@ RCT_EXPORT_METHOD(componentWillUnmount:(RCTResponseSenderBlock)block)
 
 RCT_EXPORT_METHOD(getFreeSpace:(RCTResponseSenderBlock)block)
 {
+  
+  
+//  NSURLCache * const urlCache = [NSURLCache sharedURLCache];
+//  const NSUInteger memoryCapacity = urlCache.memoryCapacity;
+//  urlCache.memoryCapacity = 0;
+//  urlCache.memoryCapacity = memoryCapacity;
+  
+  
+  
+//  if (self.player != nil) {
+//    
+//    const NSUInteger capacity = [[SPTDiskCache alloc] capacity];
+//    self.player.diskCache = 0;
+//    self.player.diskCache = [[SPTDiskCache alloc] initWithCapacity:capacity];
+//    
+//  }
+  
+  
+  
+  
   NSDictionary *atDict = [[NSFileManager defaultManager] attributesOfFileSystemForPath:@"/" error:NULL];
   unsigned freeSpace = [[atDict objectForKey:NSFileSystemFreeSize] unsignedIntValue];
   NSString *space = [NSString stringWithFormat:@"%umb", (freeSpace/1024)/1024];
