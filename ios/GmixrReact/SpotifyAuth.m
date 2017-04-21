@@ -58,6 +58,16 @@ RCT_EXPORT_METHOD(setNotifications)
 
 }
 
+//Logout from Spotify
+RCT_EXPORT_METHOD(removeNotifications)
+{
+  
+
+  [[NSNotificationCenter defaultCenter] removeObserver:self name:@"sessionUpdated" object:nil];
+
+  
+}
+
 //Start Auth process
 RCT_EXPORT_METHOD(startAuth:(RCTResponseSenderBlock)block)
 {

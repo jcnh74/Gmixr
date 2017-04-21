@@ -15,6 +15,9 @@ import {
 } from 'react-native'
 
 import FAIcon from 'react-native-vector-icons/FontAwesome'
+import DeviceInfo from 'react-native-device-info'
+
+
 
 var styles = require('./style');
 
@@ -36,6 +39,20 @@ const {height, width} = Dimensions.get('window')
 const SpotifyAuth = NativeModules.SpotifyAuth
 const myModuleEvt = new NativeEventEmitter(NativeModules.EventManager)
 const eventReminder = null
+var textSize = 18
+var buttonSize = 32
+
+console.log(width)
+if (!__DEV__) {
+  if(DeviceInfo.getModel() == 'iPhone 5'){
+    textSize = 14
+    buttonSize = 22
+  }
+}
+if(width == 320){
+  textSize = 14
+  buttonSize = 22
+}
 
 // Default View on Launch
 export default class LogInView extends Component {
@@ -46,7 +63,8 @@ export default class LogInView extends Component {
 
     this.state = {
       loggedIn: true,
-      needpremium: false
+      needpremium: false,
+      firstVisit: true,
     }
   }
 
@@ -54,8 +72,8 @@ export default class LogInView extends Component {
 
     this.setState({loggedIn:true}, function(){
       SpotifyAuth.startAuth((accessToken)=>{
-        console.log('startAuth')
-        console.log(accessToken)
+        // console.log('startAuth')
+        // console.log(accessToken)
         if(!accessToken){
 
           SpotifyAuth.getToken((token)=>{
@@ -85,12 +103,12 @@ export default class LogInView extends Component {
   render() {
 
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, {backgroundColor: 'black'}]}>
         <StatusBar barStyle="light-content" />
         <Text style={styles.mediumText}>{this.props.notice}</Text>
         {(this.state.loggedIn) ? (
           <View>
-          <Text style={styles.mediumText}>Loading Spotify Library</Text>
+          <Text style={styles.largeText}>Loading Spotify Library</Text>
           <Image 
               source={defaultImage}
               style={{width: width}}
@@ -99,8 +117,16 @@ export default class LogInView extends Component {
           </View>
           ) : (
           <View>
-            <FAIcon.Button name="spotify" backgroundColor="#1ED760" size={32} onPress={this._loginToSpotify}>
-              <Text style={{fontSize:18, color:'white'}}>Connect Premium Spotify Account</Text>
+            <View>
+              <Text style={styles.largeText}>Welcome To Gmixr</Text>
+              <Image 
+                  source={defaultImage}
+                  style={{flex:-1, width: width - 40}}
+                  resizeMode='contain'
+                />
+            </View>
+            <FAIcon.Button name="spotify" backgroundColor="#1ED760" size={buttonSize} onPress={this._loginToSpotify}>
+              <Text style={{fontSize:textSize, color:'white'}}>Connect Premium Spotify Account</Text>
             </FAIcon.Button>
           </View>
           )}
@@ -109,48 +135,52 @@ export default class LogInView extends Component {
   }
   componentWillMount() {
 
-    AsyncStorage.getItem('@GmixrStore:firstVisit', (err, res) => {
-      if(res){
-        console.log('firstVisit')
-        AsyncStorage.setItem('@GmixrStore:firstVisit', true)
-      }
-    })
 
-    // let keys = ['@GmixrStore:token', '@GmixrStore:playlists', '@GmixrStore:playlistsTotal'];
-    // AsyncStorage.multiRemove(keys, (err) => {
-    if(this.props.userProduct == 'premium'){
-      SpotifyAuth.getStatus((result)=>{
-        console.log('getStatus')
-        console.log(result)
-        if(result == 'NoSession'){
-          this.setState({loggedIn:false}, () => {
+    if(this.props.showLogin){
+      this.setState({loggedIn:false}, () => {
+        this.forceUpdate()
+      })
+    }else{
+
+      AsyncStorage.getItem('@GmixrStore:firstVisit', (err, res) => {
+        if(res){
+          this.setState({firstVisit:false}, () => {
             this.forceUpdate()
           })
-          return
-        }
-        if(result == 'Token expired'){
-
-        // AsyncStorage.removeItem('@GmixrStore:playlists')
-        // AsyncStorage.removeItem('@GmixrStore:playlistsTotal')
-
-          // SpotifyAuth.renewToken((token)=>{
-
-          //   this._setAsyncToken(token)
-
-          //   this.setState({loggedIn:true}, () => {
-          //     this.forceUpdate()
-          //   })
-          // })
+        }else{
+          AsyncStorage.setItem('@GmixrStore:firstVisit', 'YES')
+          this.setState({firstVisit:true}, () => {
+            this.forceUpdate()
+          })
         }
       })
+
+      if(this.props.userProduct == 'premium'){
+        SpotifyAuth.getStatus((result)=>{
+          // console.log('getStatus')
+          // console.log(result)
+          if(result == 'NoSession'){
+            this.setState({loggedIn:false}, () => {
+              this.forceUpdate()
+            })
+            return
+          }
+          if(result == 'Token expired'){
+
+          }
+        })
+      }
+
     }
-    // });
+
+
+
   }
   componentDidMount() {
 
     SpotifyAuth.setNotifications()
 
-    console.log(this.props)
+    // console.log(this.props)
     // Clear Storage
     // AsyncStorage.removeItem('@GmixrStore:token')
     // AsyncStorage.removeItem('@GmixrStore:timestamp')
@@ -180,7 +210,7 @@ export default class LogInView extends Component {
           this.forceUpdate()
         })
 
-        Actions.player()
+        Actions.player({firstVisit:this.state.firstVisit})
 
       }else if(message == "didReceiveError: Wrong username or password"){
         //console.log("didReceiveError: Wrong username or password")

@@ -35,7 +35,7 @@ import IOIcon from 'react-native-vector-icons/Ionicons'
 var styles = require('../style');
 
 const {height, width} = Dimensions.get('window')
-const storeKeys = ['@GmixrStore:playlistsTotal', '@GmixrStore:playlists', '@GmixrStore:playlistsOffsetY', '@GmixrStore:tracksTotal', '@GmixrStore:tracks', '@GmixrStore:tracksOffsetY', '@GmixrStore:artistNext', '@GmixrStore:artist'];
+const storeKeys = ['@GmixrStore:playlistsTotal', '@GmixrStore:playlists', '@GmixrStore:playlistsOffsetY', '@GmixrStore:tracksTotal', '@GmixrStore:tracks', '@GmixrStore:tracksOffsetY', '@GmixrStore:artistNext', '@GmixrStore:artist', '@GmixrStore:firstVisit'];
 const mainKeys = ['@GmixrStore:playlistsTotal', '@GmixrStore:playlists', '@GmixrStore:playlistsOffsetY', '@GmixrStore:tracksTotal', '@GmixrStore:tracks', '@GmixrStore:tracksOffsetY', '@GmixrStore:artistNext', '@GmixrStore:artist', '@GmixrStore:token'];
 
 export default class SettingsView extends Component {
@@ -64,6 +64,7 @@ export default class SettingsView extends Component {
       AsyncStorage.multiRemove(storeKeys, (err) => {
         RNFetchBlob.session('Gmixr').dispose().then(() => {
           SpotifyAuth.logout()
+          SpotifyAuth.removeNotifications()
         })
       })
     })
@@ -99,7 +100,7 @@ export default class SettingsView extends Component {
             return key === keys[i];
           })
           if(!found){
-            console.log(keys[i])
+            // console.log(keys[i])
             AsyncStorage.removeItem(keys[i]);
           }
         }
@@ -222,7 +223,7 @@ export default class SettingsView extends Component {
 
   componentDidMount() {
 
-    console.log(this.props.currentUser)
+    // console.log(this.props.currentUser)
 
     SpotifyAuth.setNotifications()
 
@@ -233,20 +234,20 @@ export default class SettingsView extends Component {
     })
 
     eventReminder = myModuleEvt.addListener('EventReminder', (data) => {
-      console.log('EventReminder')
-      console.log(data)
+      // console.log('EventReminder')
+      // console.log(data)
       if(data.object == "audioStreamingDidLogout"){
-        Actions.login({userProduct:'open', notice:'Logged Out'})
+        Actions.login({userProduct:'open', notice:'Logged Out', showLogin: true})
       }
     })
 
-    RNFetchBlob.fs.lstat()
-    .then((stats) => {
-      console.log(stats)
-    })
-    .catch((err) => {
-      console.log(err)
-    })
+    // RNFetchBlob.fs.lstat()
+    // .then((stats) => {
+    //   console.log(stats)
+    // })
+    // .catch((err) => {
+    //   console.log(err)
+    // })
 
     // var avatar = 'https://facebook.github.io/react/img/logo_og.png'
     // if(typeof(this.props.currentUser.images) !== 'undefined' && this.state.currentUser.images.length){

@@ -58,6 +58,7 @@ import SettingsView from './components/SettingsView'
 const SpotifyAuth = NativeModules.SpotifyAuth
 const myModuleEvt = new NativeEventEmitter(NativeModules.EventManager)
 const eventReminder = null
+const giphy_key = 'l0MYDnwEqSCrEHPZC'
 
 // Settings
 const {height, width} = Dimensions.get('window')
@@ -308,7 +309,7 @@ export default class PlayerView extends Component {
     .then((response) => response.json())
     .then((responseJson) => {
 
-      console.log(responseJson)
+      // console.log(responseJson)
       
       if(responseJson.product == "open"){
         
@@ -386,7 +387,7 @@ export default class PlayerView extends Component {
   // Update state of current track, clear Gifs and request new ones.
   _setTrack(currentURI, callback){
 
-    console.log("_setTrack start")
+    // console.log("_setTrack start")
     
     this._clearGifs()
 
@@ -448,7 +449,7 @@ export default class PlayerView extends Component {
       .then((response) => response.json())
       .then((responseJson) => {
 
-        console.log(responseJson)
+        // console.log(responseJson)
         var currentTerms = []
         currentTerms[0] = responseJson.artists[0].name
         currentTerms[1] = responseJson.name
@@ -465,7 +466,7 @@ export default class PlayerView extends Component {
           }
         }, () => {
           if (typeof callback === "function") {
-              console.log("_setTrack called")
+              // console.log("_setTrack called")
               this._getAudioFeatures(responseJson.id, result)
               this._getGifs(responseJson.artists[0].name + ', '+ responseJson.name)
               callback(true)
@@ -612,14 +613,14 @@ export default class PlayerView extends Component {
 
     AsyncStorage.getItem('@GmixrStore:'+this.state.currentTrack.trackID, (err, res) => {
       if(res){
-        console.log(terms)
+        // console.log(terms)
         this.setState({loadingGifs: true, textTerms: res})
         term = encodeURIComponent(res)
         var gifUrls = []
 
       }else{
 
-        console.log(terms)
+        // console.log(terms)
 
         this.setState({loadingGifs: true, textTerms: terms})
         term = encodeURIComponent(terms)
@@ -629,7 +630,7 @@ export default class PlayerView extends Component {
 
       var randomnumber = (Math.floor(Math.random() * 3)*40);
 
-      fetch('https://api.giphy.com/v1/gifs/search?q='+term+'&limit=40&offset='+randomnumber+'&api_key=dc6zaTOxFJmzC', {
+      fetch('https://api.giphy.com/v1/gifs/search?q='+term+'&limit=40&offset='+randomnumber+'&api_key='+giphy_key, {
         method: 'GET',
       })
       .then((response) => response.json())
@@ -1030,7 +1031,12 @@ export default class PlayerView extends Component {
 
     Linking.addEventListener('url', this._handleOpenURL);
     this.setState({isLoggedIn:true})
-
+    if(this.props.firstVisit == true){
+      this.setState({
+        showListView: true,
+        currentListView: 'playlists'
+      })
+    }
 
 
     // Incoming Deep Link request
@@ -1043,8 +1049,8 @@ export default class PlayerView extends Component {
 
         //this.eventEmitter.addListener('loggedIn', () => this._handleOpenURL(event), this)
       }else{
-        console.log('Linking')
-        console.log(url)
+        // console.log('Linking')
+        // console.log(url)
         this._handleSavedTrack()
         //this.eventEmitter.addListener('setTrack', () => this._handleSavedTrack(event), this)
       }
@@ -1061,7 +1067,7 @@ export default class PlayerView extends Component {
     eventReminder = myModuleEvt.addListener('EventReminder', (data) => {
 
       var message = data.object[0]
-      console.log(data.object)
+      // console.log(data.object)
       if(message.includes("didStartPlayingTrack")){
 
         this._cancelGetData()
@@ -1137,7 +1143,7 @@ export default class PlayerView extends Component {
     
     var terms = decodeURIComponent(url[1])
 
-    console.log(terms)
+    // console.log(terms)
 
     this.setState({
       showListView: false,

@@ -180,6 +180,14 @@ module.exports = StyleSheet.create({
     width: 250,
     height: 50
   },
+  largeText: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 0,
+    marginBottom: 10,
+    color: 'white',
+    backgroundColor: 'transparent',
+  },
   mediumText: {
     fontSize: 14,
     textAlign: 'center',
