@@ -52,15 +52,15 @@
 		7B48067E1E819F380003E8A7 /* SpotifyAudioPlayback.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B48067B1E819F380003E8A7 /* SpotifyAudioPlayback.framework */; };
 		7B48067F1E819F380003E8A7 /* SpotifyAuthentication.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B48067C1E819F380003E8A7 /* SpotifyAuthentication.framework */; };
 		7B4806801E819F380003E8A7 /* SpotifyMetadata.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B48067D1E819F380003E8A7 /* SpotifyMetadata.framework */; };
+		7B6031381EAAC1EA00A1331D /* RSKImageCropper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6031371EAAC1EA00A1331D /* RSKImageCropper.framework */; };
+		7B6031391EAAC1EA00A1331D /* RSKImageCropper.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6031371EAAC1EA00A1331D /* RSKImageCropper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		7B60313B1EAAC1EA00A1331D /* QBImagePicker.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B60313A1EAAC1EA00A1331D /* QBImagePicker.framework */; };
+		7B60313C1EAAC1EA00A1331D /* QBImagePicker.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7B60313A1EAAC1EA00A1331D /* QBImagePicker.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7BF52DF01E6E43ED006865D2 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BF52DEF1E6E43ED006865D2 /* WebKit.framework */; };
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
 		85145D3CD3C8410588B2F914 /* MaterialIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AAE1BFB884E94154B6B0982D /* MaterialIcons.ttf */; };
-		9285BA571E8EAD140043A0E1 /* QBImagePicker.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6017431E8602C6006D5C0A /* QBImagePicker.framework */; };
-		9285BA581E8EAD140043A0E1 /* RSKImageCropper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B6017441E8602C6006D5C0A /* RSKImageCropper.framework */; };
 		928A5D211EA2BC8C001A442E /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 928A5D201EA2BC8C001A442E /* Social.framework */; };
 		928A5D231EA2BC97001A442E /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 928A5D221EA2BC97001A442E /* MessageUI.framework */; };
-		92EEEB601E8ECAA600E83E38 /* QBImagePicker.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 92EEEB5E1E8ECAA600E83E38 /* QBImagePicker.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		92EEEB611E8ECAA600E83E38 /* RSKImageCropper.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 92EEEB5F1E8ECAA600E83E38 /* RSKImageCropper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9B31A4DA40614484A83C61AF /* libRNBackgroundTimer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 017279F9856A4B439C2DA5FB /* libRNBackgroundTimer.a */; };
 		9F114D498D174A219D4C8100 /* Foundation.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 975C8D53AE274179A07714A1 /* Foundation.ttf */; };
 		C19B768D63D2449480F958C7 /* Ionicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DD0D47A9622A400FAE4A96BD /* Ionicons.ttf */; };
@@ -340,8 +340,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				92EEEB601E8ECAA600E83E38 /* QBImagePicker.framework in Embed Frameworks */,
-				92EEEB611E8ECAA600E83E38 /* RSKImageCropper.framework in Embed Frameworks */,
+				7B6031391EAAC1EA00A1331D /* RSKImageCropper.framework in Embed Frameworks */,
+				7B60313C1EAAC1EA00A1331D /* QBImagePicker.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -393,6 +393,8 @@
 		7B4C82F41E7E145D0046D95A /* SpotifyAuth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SpotifyAuth.h; path = GmixrReact/SpotifyAuth.h; sourceTree = "<group>"; };
 		7B6017431E8602C6006D5C0A /* QBImagePicker.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = QBImagePicker.framework; sourceTree = "<group>"; };
 		7B6017441E8602C6006D5C0A /* RSKImageCropper.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = RSKImageCropper.framework; sourceTree = "<group>"; };
+		7B6031371EAAC1EA00A1331D /* RSKImageCropper.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RSKImageCropper.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		7B60313A1EAAC1EA00A1331D /* QBImagePicker.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = QBImagePicker.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7B6463A11E7723130041BB2F /* EventManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EventManager.m; path = GmixrReact/EventManager.m; sourceTree = "<group>"; };
 		7B6463C11E77232C0041BB2F /* EventManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EventManager.h; path = GmixrReact/EventManager.h; sourceTree = "<group>"; };
 		7B6463D21E7756CF0041BB2F /* Config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Config.h; sourceTree = "<group>"; };
@@ -438,10 +440,10 @@
 			files = (
 				928A5D231EA2BC97001A442E /* MessageUI.framework in Frameworks */,
 				928A5D211EA2BC8C001A442E /* Social.framework in Frameworks */,
-				9285BA571E8EAD140043A0E1 /* QBImagePicker.framework in Frameworks */,
-				9285BA581E8EAD140043A0E1 /* RSKImageCropper.framework in Frameworks */,
+				7B6031381EAAC1EA00A1331D /* RSKImageCropper.framework in Frameworks */,
 				7B42A9681E70FFD2008A4F5E /* SafariServices.framework in Frameworks */,
 				7B48067F1E819F380003E8A7 /* SpotifyAuthentication.framework in Frameworks */,
+				7B60313B1EAAC1EA00A1331D /* QBImagePicker.framework in Frameworks */,
 				146834051AC3E58100842450 /* libReact.a in Frameworks */,
 				5E9157361DD0AC6A00FF2AA8 /* libRCTAnimation.a in Frameworks */,
 				00C302E51ABCBA2D00DB3ED1 /* libRCTActionSheet.a in Frameworks */,
@@ -772,6 +774,8 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				7B60313A1EAAC1EA00A1331D /* QBImagePicker.framework */,
+				7B6031371EAAC1EA00A1331D /* RSKImageCropper.framework */,
 				13B07FAE1A68108700A75B9A /* GmixrReact */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* GmixrReactTests */,

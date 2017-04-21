@@ -356,7 +356,7 @@ export default class ControlView extends Component {
             <View style={[styles.miniPlayerTrackProgress, {width: this.state.widthElapsed}]}></View>
           </View>
           <View style={{height:42, width: width, position: 'absolute', top:2, left:0, right:0, bottom:0}}>
-            <View style={styles.flexRow}>
+            <View style={[styles.flexRow, { justifyContent: 'space-between'}]}>
               <TouchableHighlight style={[styles.miniButton, {marginLeft: 6}]} onPress={() => this._setView()} activeOpacity={1} underlayColor="transparent">
                 <IOIcon name="ios-arrow-up" backgroundColor="transparent" color="white" size={26} />
               </TouchableHighlight> 

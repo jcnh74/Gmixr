@@ -38,7 +38,7 @@ import Orientation from 'react-native-orientation'
 import BlurImage from 'react-native-blur-image'
 import BackgroundTimer from 'react-native-background-timer'
 
-import ImagePicker from 'react-native-image-crop-picker'
+//import ImagePicker from 'react-native-image-crop-picker'
 
 // Styles
 var styles = require('./style')
@@ -279,7 +279,7 @@ export default class PlayerView extends Component {
     var imagearr = this.state.tasks
 
     this.setState({
-      localImages: []
+      localImages: [],
     })
 
     if(typeof(imagearr) !== 'undefined' && imagearr.length){
@@ -576,31 +576,31 @@ export default class PlayerView extends Component {
 
 
   // Future Release
-  _getLocalImages(){
+  // _getLocalImages(){
 
-    ImagePicker.openPicker({
-      multiple: true,
-      maxFiles: 50,
-      mediaType: 'photo',
-    }).then(images => {
+  //   ImagePicker.openPicker({
+  //     multiple: true,
+  //     maxFiles: 50,
+  //     mediaType: 'photo',
+  //   }).then(images => {
 
 
-      var newArr = []
-      for(i = 0; i < images.length; i++){
+  //     var newArr = []
+  //     for(i = 0; i < images.length; i++){
 
-        // console.log(images[i].path);
-        // newArr.push(images[i].path)
+  //       // console.log(images[i].path);
+  //       // newArr.push(images[i].path)
 
-      }
+  //     }
 
-      this.setState({
-        localImages: newArr
-      })
+  //     this.setState({
+  //       localImages: newArr
+  //     })
 
-      this._play()
+  //     this._play()
 
-    });
-  }
+  //   });
+  // }
 
 
   // Get from Giphy some dank Gifs
