@@ -338,7 +338,7 @@ export default class ControlView extends Component {
     var trackName = (this.props.currentTrack.name) ? this.props.currentTrack.name : ''
 
     var jsonTerms = encodeURIComponent(this.props.textTerms)
-    var url = 'gmixr://gmixr.com/?uri='+this.props.currentTrack.uri+'&terms='+jsonTerms
+    var url = 'http://gmixr.com/share/?uri='+this.props.currentTrack.uri+'&terms='+jsonTerms
 
     let shareOptions = {
       title: 'Shared Gmixr Mixup',
