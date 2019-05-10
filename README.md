@@ -1,4 +1,4 @@
-# Gmixr
+# <a href="https://jcnh74.github.io/gmixr/" target="_blank">Gmixr</a>
 
 Music and Imagery 
 
