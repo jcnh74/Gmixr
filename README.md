@@ -1,7 +1,7 @@
-# <a href="https://jcnh74.github.io/gmixr/" target="_blank">Gmixr</a>
+# Gmixr
 
 Music and Imagery 
-
+<a href="https://jcnh74.github.io/gmixr/" target="_blank">Demo</a>
 
 ## Getting Started
 
