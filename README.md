@@ -1,6 +1,6 @@
 # Gmixr
 
-Music and Imagery 
+Music and Imagery <br />
 <a href="https://jcnh74.github.io/gmixr/" target="_blank">Demo</a>
 
 ## Getting Started
